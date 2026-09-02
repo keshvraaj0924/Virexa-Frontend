@@ -1,4 +1,4 @@
-import type { ApiError } from './auth'
+import type { ApiErrorBody } from './auth'
 
 export interface ApiMeta {
   requestId: string
@@ -11,7 +11,7 @@ export interface ApiSuccess<T> {
 }
 
 export interface ApiFailure {
-  error: ApiError
+  error: ApiErrorBody
   meta?: ApiMeta
 }
 
