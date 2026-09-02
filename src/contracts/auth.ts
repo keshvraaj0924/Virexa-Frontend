@@ -31,24 +31,9 @@ export interface RegisterRequest {
   organizationName: string
 }
 
-export interface ApiMeta {
-  requestId: string
-  timestamp: string
-}
-
-export interface ApiSuccess<T> {
-  data: T
-  meta: ApiMeta
-}
-
 export interface ApiErrorBody {
   code: string
   message: string
   requestId: string
   fieldErrors?: Record<string, string[]>
-}
-
-export interface ApiFailure {
-  error: ApiErrorBody
-  meta?: ApiMeta
 }
