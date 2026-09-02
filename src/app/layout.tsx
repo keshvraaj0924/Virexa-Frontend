@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import './marketing.css'
 import './auth.css'
+import './app-shell.css'
 
 export const metadata: Metadata = {
   title: 'Virexa — Beyond Automation',
