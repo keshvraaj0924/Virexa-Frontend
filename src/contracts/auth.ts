@@ -1,11 +1,9 @@
 export type UserRole =
-  | 'platform_admin'
-  | 'tenant_admin'
-  | 'organization_admin'
+  | 'super_admin'
+  | 'admin'
   | 'manager'
   | 'operator'
   | 'viewer'
-  | 'auditor'
 
 export interface UserSummary {
   id: string
@@ -52,5 +50,5 @@ export interface ApiErrorBody {
 
 export interface ApiFailure {
   error: ApiErrorBody
-  meta: ApiMeta
+  meta?: ApiMeta
 }
