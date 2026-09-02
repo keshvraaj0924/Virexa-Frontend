@@ -1,7 +1,14 @@
 import type { ApiFailure, ApiMeta, ApiSuccess } from '../../contracts/api'
-import type { AuthSession, LoginRequest, RegisterRequest } from '../../contracts/auth'
+import type { AuthenticatedContext, AuthSession, LoginRequest, RegisterRequest } from '../../contracts/auth'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'
+
+export class AuthApiError extends Error {
+  constructor(public readonly status: number, public readonly code: string, message: string) {
+    super(message)
+    this.name = 'AuthApiError'
+  }
+}
 
 function createRequestId(): string {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -22,14 +29,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const payload = (await response.json().catch(() => null)) as ApiFailure | null
-    throw new Error(payload?.error.message ?? 'Request failed')
+    throw new AuthApiError(response.status, payload?.error.code ?? 'REQUEST_FAILED', payload?.error.message ?? 'Request failed')
   }
   return response.json() as Promise<T>
 }
 
 export const authApi = {
   session: () => request<ApiSuccess<AuthSession>>('/auth/session'),
-  me: () => request<ApiSuccess<AuthSession>>('/me'),
+  me: () => request<ApiSuccess<AuthenticatedContext>>('/me'),
   login: (input: LoginRequest) => request<ApiSuccess<AuthSession>>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(input),

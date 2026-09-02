@@ -1,47 +1,22 @@
-export type Role =
-  | 'platform_admin'
-  | 'tenant_admin'
-  | 'organization_admin'
-  | 'manager'
-  | 'operator'
-  | 'viewer'
-  | 'auditor';
+import type { Permission, UserRole } from '@/contracts/auth'
 
-export type Permission =
-  | 'dashboard:read'
-  | 'user:read'
-  | 'user:manage'
-  | 'role:manage'
-  | 'workflow:read'
-  | 'workflow:manage'
-  | 'document:read'
-  | 'document:manage'
-  | 'audit:read';
+export type Role = UserRole
 
-const ROLE_PERMISSIONS: Record<Role, ReadonlySet<Permission>> = {
-  platform_admin: new Set([
-    'dashboard:read', 'user:read', 'user:manage', 'role:manage',
-    'workflow:read', 'workflow:manage', 'document:read', 'document:manage', 'audit:read',
+const ROLE_PERMISSIONS: Record<UserRole, ReadonlySet<Permission>> = {
+  super_admin: new Set([
+    'platform:read', 'platform:manage', 'organization:manage', 'audit:read',
+    'workflow:read', 'workflow:create', 'workflow:manage',
   ]),
-  tenant_admin: new Set([
-    'dashboard:read', 'user:read', 'user:manage', 'role:manage',
-    'workflow:read', 'workflow:manage', 'document:read', 'document:manage', 'audit:read',
+  admin: new Set([
+    'platform:read', 'organization:manage', 'audit:read',
+    'workflow:read', 'workflow:create', 'workflow:manage',
   ]),
-  organization_admin: new Set([
-    'dashboard:read', 'user:read', 'user:manage', 'role:manage',
-    'workflow:read', 'workflow:manage', 'document:read', 'document:manage',
-  ]),
-  manager: new Set([
-    'dashboard:read', 'user:read', 'workflow:read', 'workflow:manage', 'document:read', 'document:manage',
-  ]),
-  operator: new Set([
-    'dashboard:read', 'workflow:read', 'workflow:manage', 'document:read', 'document:manage',
-  ]),
-  viewer: new Set(['dashboard:read', 'workflow:read', 'document:read']),
-  auditor: new Set(['dashboard:read', 'audit:read']),
-};
+  manager: new Set(['platform:read', 'audit:read', 'workflow:read', 'workflow:create', 'workflow:manage']),
+  operator: new Set(['platform:read', 'workflow:read', 'workflow:create']),
+  viewer: new Set(['platform:read', 'workflow:read']),
+}
 
-/** UI authorization helper. Backend authorization remains authoritative. */
-export function hasPermission(role: Role, permission: Permission): boolean {
-  return ROLE_PERMISSIONS[role]?.has(permission) ?? false;
+/** UI authorization helper. The backend remains the security boundary. */
+export function hasPermission(role: UserRole, permission: Permission): boolean {
+  return ROLE_PERMISSIONS[role].has(permission)
 }
