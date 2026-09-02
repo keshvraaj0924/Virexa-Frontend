@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createWorkflow, listWorkflows } from './workflows'
+import { createWorkflow, listWorkflows, updateWorkflow } from './workflows'
 import { apiRequest } from './client'
 
 vi.mock('./client', () => ({ apiRequest: vi.fn() }))
@@ -17,5 +17,12 @@ describe('workflow API client', () => {
     mockedApiRequest.mockResolvedValue({ data: { id: 'wf-1' }, meta: { requestId: 'req-2', timestamp: '2026-09-02T00:00:00.000Z' } })
     await createWorkflow(input)
     expect(mockedApiRequest).toHaveBeenCalledWith('/workflows', { method: 'POST', body: JSON.stringify(input) })
+  })
+
+  it('patches only through the versioned workflow resource', async () => {
+    const input = { status: 'active' as const }
+    mockedApiRequest.mockResolvedValue({ data: { id: 'wf-1', status: 'active' }, meta: { requestId: 'req-3', timestamp: '2026-09-02T00:00:00.000Z' } })
+    await updateWorkflow('wf-1', input)
+    expect(mockedApiRequest).toHaveBeenCalledWith('/workflows/wf-1', { method: 'PATCH', body: JSON.stringify(input) })
   })
 })
