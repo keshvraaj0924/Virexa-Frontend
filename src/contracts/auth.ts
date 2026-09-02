@@ -1,9 +1,11 @@
 export type UserRole =
-  | 'super_admin'
-  | 'admin'
+  | 'platform_admin'
+  | 'tenant_admin'
+  | 'organization_admin'
   | 'manager'
   | 'operator'
   | 'viewer'
+  | 'auditor'
 
 export interface UserSummary {
   id: string
