@@ -31,13 +31,24 @@ export interface RegisterRequest {
   organizationName: string
 }
 
-export interface AuthResponse {
-  session: AuthSession
+export interface ApiMeta {
+  requestId: string
+  timestamp: string
 }
 
-export interface ApiError {
+export interface ApiSuccess<T> {
+  data: T
+  meta: ApiMeta
+}
+
+export interface ApiErrorBody {
   code: string
   message: string
   requestId: string
   fieldErrors?: Record<string, string[]>
+}
+
+export interface ApiFailure {
+  error: ApiErrorBody
+  meta: ApiMeta
 }
