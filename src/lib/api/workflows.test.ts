@@ -12,11 +12,16 @@ describe('workflow API client', () => {
     expect(mockedApiRequest).toHaveBeenCalledWith('/workflows?limit=25')
   })
 
-  it('posts the exact workflow contract without browser-side authorization assumptions', async () => {
+  it('posts with a caller-stable idempotency key', async () => {
     const input = { name: 'Incident response', description: 'Production workflow' }
+    const idempotencyKey = 'workflow-create-test-key-001'
     mockedApiRequest.mockResolvedValue({ data: { id: 'wf-1' }, meta: { requestId: 'req-2', timestamp: '2026-09-02T00:00:00.000Z' } })
-    await createWorkflow(input)
-    expect(mockedApiRequest).toHaveBeenCalledWith('/workflows', { method: 'POST', body: JSON.stringify(input) })
+    await createWorkflow(input, idempotencyKey)
+    expect(mockedApiRequest).toHaveBeenCalledWith('/workflows', {
+      method: 'POST',
+      headers: { 'Idempotency-Key': idempotencyKey },
+      body: JSON.stringify(input),
+    })
   })
 
   it('patches only through the versioned workflow resource', async () => {
