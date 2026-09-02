@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AuthenticatedContext } from '@/contracts/auth'
 import { authApi, AuthApiError } from '@/lib/api/auth'
@@ -19,7 +20,7 @@ interface SessionContextValue {
 
 const SessionContext = createContext<SessionContextValue | null>(null)
 
-export function SessionProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+export function SessionProvider({ children }: Readonly<{ children: ReactNode }>) {
   const router = useRouter()
   const [state, setState] = useState<SessionState>({ status: 'loading', context: null })
 
