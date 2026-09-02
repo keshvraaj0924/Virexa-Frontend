@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import { createWorkflow, listWorkflows, updateWorkflow } from '@/lib/api/workflows'
 import type { Workflow } from '@/contracts/workflows'
 import { SessionProvider, useSession } from '@/lib/auth/session-provider'
@@ -17,13 +18,13 @@ function WorkflowManager() {
   useEffect(() => {
     if (state.status !== 'authenticated') return
     listWorkflows().then(setWorkflows).catch((reason) => setError(reason instanceof Error ? reason.message : 'Unable to load workflows.'))
-  }, [state])
+  }, [state.status])
 
   if (state.status !== 'authenticated') return null
   const canCreate = state.context.permissions.includes('workflow:create')
   const canManage = state.context.permissions.includes('workflow:manage')
 
-  async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
+  async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
     setBusy(true)
