@@ -28,6 +28,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const authApi = {
   session: () => request<ApiSuccess<AuthSession>>('/auth/session'),
+  me: () => request<ApiSuccess<AuthSession>>('/me'),
   login: (input: LoginRequest) => request<ApiSuccess<AuthSession>>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(input),
