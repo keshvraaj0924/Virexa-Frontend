@@ -1,13 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { NAVIGATION } from '@/contracts'
-import { hasPermission } from '@/lib/auth/permissions'
 import { useSession } from '@/lib/auth/session-provider'
 
-export default function ProtectedWorkspace({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function ProtectedWorkspace({ children }: Readonly<{ children: ReactNode }>) {
   const pathname = usePathname()
   const router = useRouter()
   const { state, logout } = useSession()
