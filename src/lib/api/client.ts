@@ -35,22 +35,24 @@ export class ApiClientError extends Error {
   }
 }
 
-function createRequestId(): string {
-  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+function createRequestId(): string | undefined {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return undefined
 }
 
 export async function apiRequest<T>(path: string, init?: RequestInit): Promise<ApiEnvelope<T>> {
+  const requestId = createRequestId()
+  const headers = new Headers(init?.headers)
+  headers.set('Accept', 'application/json')
+  headers.set('Content-Type', 'application/json')
+  if (requestId) headers.set('X-Request-ID', requestId)
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'X-Request-ID': createRequestId(),
-      ...init?.headers,
-    },
+    headers,
   })
 
   const payload = (await response.json().catch(() => null)) as ApiEnvelope<T> | ApiErrorEnvelope | null
