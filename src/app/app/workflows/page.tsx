@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getServerSession } from '@/lib/auth/server'
-import WorkflowPanel from '../workflows'
+import WorkflowPanel from '@/app/app-shell/workflows'
 
 export default async function WorkflowsPage() {
   const session = await getServerSession()
