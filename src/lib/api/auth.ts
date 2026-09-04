@@ -17,19 +17,20 @@ export class ApiRequestError extends Error {
   }
 }
 
-function createRequestId(): string {
+function createRequestId(): string | undefined {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+    : undefined
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const requestId = createRequestId()
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      'X-Request-ID': createRequestId(),
+      ...(requestId ? { 'X-Request-ID': requestId } : {}),
       ...init?.headers,
     },
   })
