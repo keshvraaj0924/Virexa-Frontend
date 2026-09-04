@@ -1,28 +1,49 @@
 import type { ApiFailure, ApiMeta, ApiSuccess } from '../../contracts/api'
-import type { AuthSession, LoginRequest, RegisterRequest } from '../../contracts/auth'
+import type { ApiErrorCode, AuthSession, LoginRequest, RegisterRequest } from '../../contracts/auth'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'
 
-function createRequestId(): string {
+export class ApiRequestError extends Error {
+  readonly code: ApiErrorCode | 'UNKNOWN_ERROR'
+  readonly requestId?: string
+  readonly retryAfterSeconds?: number
+
+  constructor(message: string, options: { code: ApiErrorCode | 'UNKNOWN_ERROR'; requestId?: string; retryAfterSeconds?: number }) {
+    super(message)
+    this.name = 'ApiRequestError'
+    this.code = options.code
+    this.requestId = options.requestId
+    this.retryAfterSeconds = options.retryAfterSeconds
+  }
+}
+
+function createRequestId(): string | undefined {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+    : undefined
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const requestId = createRequestId()
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      'X-Request-ID': createRequestId(),
+      ...(requestId ? { 'X-Request-ID': requestId } : {}),
       ...init?.headers,
     },
   })
 
   if (!response.ok) {
     const payload = (await response.json().catch(() => null)) as ApiFailure | null
-    throw new Error(payload?.error.message ?? 'Request failed')
+    const retryAfterHeader = response.headers.get('Retry-After')
+    const retryAfterSeconds = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : undefined
+    throw new ApiRequestError(payload?.error.message ?? 'Request failed', {
+      code: payload?.error.code ?? 'UNKNOWN_ERROR',
+      requestId: payload?.error.requestId,
+      retryAfterSeconds: Number.isFinite(retryAfterSeconds) && retryAfterSeconds >= 0 ? retryAfterSeconds : undefined,
+    })
   }
   return response.json() as Promise<T>
 }
