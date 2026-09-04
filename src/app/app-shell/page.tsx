@@ -6,7 +6,7 @@ import WorkflowPanel from './workflows'
 export default async function AppShellPage() {
   const session = await getServerSession()
   if (!session) return null
-  const navigation = NAVIGATION.filter((item) => item.roles.includes(session.user.role as never))
+  const navigation = NAVIGATION.filter((item) => item.roles.includes(session.user.role))
 
   return (
     <main className="app-layout">
