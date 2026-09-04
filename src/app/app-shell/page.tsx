@@ -1,10 +1,12 @@
 import Link from 'next/link'
-import { NAVIGATION, type UserRole } from '@/contracts'
+import { NAVIGATION } from '@/contracts'
+import { getServerSession } from '@/lib/auth/server'
+import WorkflowPanel from './workflows'
 
-const DEMO_ROLE: UserRole = 'admin'
-
-export default function AppShellPage() {
-  const navigation = NAVIGATION.filter((item) => item.roles.includes(DEMO_ROLE))
+export default async function AppShellPage() {
+  const session = await getServerSession()
+  if (!session) return null
+  const navigation = NAVIGATION.filter((item) => item.roles.includes(session.user.role as never))
 
   return (
     <main className="app-layout">
@@ -12,17 +14,15 @@ export default function AppShellPage() {
         <Link href="/" className="sidebar-brand"><span className="brand-mark">V</span><span>Virexa</span></Link>
         <div className="sidebar-label">Workspace</div>
         <nav>{navigation.map((item, index) => <Link className={index === 0 ? 'nav-item active' : 'nav-item'} key={item.href} href={item.href}>{item.label}</Link>)}</nav>
-        <div className="sidebar-footer"><div className="account-avatar">A</div><div><strong>Admin</strong><small>Organization workspace</small></div></div>
+        <div className="sidebar-footer"><div className="account-avatar">{session.user.displayName.slice(0, 1).toUpperCase()}</div><div><strong>{session.user.displayName}</strong><small>{session.user.organizationName}</small></div></div>
       </aside>
       <section className="app-content">
-        <header className="app-header"><div><span className="eyebrow">OVERVIEW</span><h1>Dashboard</h1></div><div className="header-actions"><span className="workspace-pill">Operations workspace</span><Link href="/" className="header-link">View site</Link></div></header>
-        <div className="dashboard-grid">
-          <article className="metric-card"><span>Active workflows</span><strong>24</strong><small>Across 7 business processes</small></article>
-          <article className="metric-card"><span>Items processed</span><strong>18,420</strong><small>+18.2% from previous period</small></article>
-          <article className="metric-card"><span>Exception rate</span><strong>1.8%</strong><small>Within configured threshold</small></article>
-          <article className="metric-card"><span>Time recovered</span><strong>1,284h</strong><small>Estimated operational capacity</small></article>
-        </div>
-        <section className="dashboard-panel"><div className="panel-heading"><div><span className="eyebrow">OPERATIONS</span><h2>Workflow activity</h2></div><span className="status-chip">All systems healthy</span></div><div className="activity-row"><div><strong>Invoice processing</strong><span>1,284 items · 96.2% straight-through</span></div><span>Today</span></div><div className="activity-row"><div><strong>Vendor onboarding</strong><span>142 items · 4 exceptions</span></div><span>Today</span></div><div className="activity-row"><div><strong>Document classification</strong><span>8,410 items · 99.1% confidence</span></div><span>Yesterday</span></div></section>
+        <header className="app-header"><div><span className="eyebrow">OVERVIEW</span><h1>Dashboard</h1></div><div className="header-actions"><span className="workspace-pill">{session.user.organizationName}</span><Link href="/" className="header-link">View site</Link></div></header>
+        <section className="dashboard-panel">
+          <div className="panel-heading"><div><span className="eyebrow">SESSION</span><h2>Workspace ready</h2></div><span className="status-chip">Authenticated</span></div>
+          <div className="activity-row"><div><strong>{session.user.displayName}</strong><span>{session.user.email}</span></div><span>{session.user.role}</span></div>
+        </section>
+        <WorkflowPanel role={session.user.role} />
       </section>
     </main>
   )
