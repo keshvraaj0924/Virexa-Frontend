@@ -38,11 +38,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     const payload = (await response.json().catch(() => null)) as ApiFailure | null
     const retryAfterHeader = response.headers.get('Retry-After')
-    const retryAfterSeconds = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : undefined
+    const parsedRetryAfterSeconds = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : undefined
+    const retryAfterSeconds = typeof parsedRetryAfterSeconds === 'number'
+      && Number.isFinite(parsedRetryAfterSeconds)
+      && parsedRetryAfterSeconds >= 0
+      ? parsedRetryAfterSeconds
+      : undefined
     throw new ApiRequestError(payload?.error.message ?? 'Request failed', {
       code: payload?.error.code ?? 'UNKNOWN_ERROR',
       requestId: payload?.error.requestId,
-      retryAfterSeconds: Number.isFinite(retryAfterSeconds) && retryAfterSeconds >= 0 ? retryAfterSeconds : undefined,
+      retryAfterSeconds,
     })
   }
   return response.json() as Promise<T>
