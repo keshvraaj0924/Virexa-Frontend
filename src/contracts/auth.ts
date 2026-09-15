@@ -31,8 +31,23 @@ export interface RegisterRequest {
   organizationName: string
 }
 
+export type ApiErrorCode =
+  | 'VALIDATION_ERROR'
+  | 'UNTRUSTED_ORIGIN'
+  | 'DEPENDENCY_UNAVAILABLE'
+  | 'UNAUTHENTICATED'
+  | 'FORBIDDEN'
+  | 'NOT_FOUND'
+  | 'INTERNAL_ERROR'
+  | 'EMAIL_ALREADY_REGISTERED'
+  | 'INVALID_CREDENTIALS'
+  | 'INVALID_STATE_TRANSITION'
+  | 'WORKFLOW_CONFLICT'
+  | 'IDEMPOTENCY_KEY_REUSED'
+  | 'RATE_LIMITED'
+
 export interface ApiErrorBody {
-  code: string
+  code: ApiErrorCode
   message: string
   requestId: string
   fieldErrors?: Record<string, string[]>
