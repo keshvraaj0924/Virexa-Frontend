@@ -20,13 +20,25 @@ export type ApiErrorEnvelope = {
   meta: ApiMeta;
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
+
+function correlationHeaders(): HeadersInit {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return { 'X-Request-ID': crypto.randomUUID() };
+  }
+  return {};
+}
 
 export async function apiRequest<T>(path: string, init?: RequestInit): Promise<ApiEnvelope<T>> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     credentials: 'include',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...init?.headers },
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...correlationHeaders(),
+      ...init?.headers,
+    },
   });
 
   const payload = (await response.json().catch(() => null)) as ApiEnvelope<T> | ApiErrorEnvelope | null;
