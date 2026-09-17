@@ -91,7 +91,7 @@ export default function WorkflowPanel({ role, userId }: WorkflowPanelProps) {
       {loading ? <p>Loading workflows…</p> : workflows.length === 0 ? <p>No workflows are configured for this organization yet.</p> : (
         <div>
           {workflows.map((workflow) => {
-            const canManageWorkflow = canManageAll || (canCreate && workflow.createdBy === userId)
+            const canManageWorkflow = canManageAll || (canCreate && workflow.createdByUserId === userId)
             const nextStatuses = canManageWorkflow ? NEXT_STATUSES[workflow.status] : []
             return (
               <div className="activity-row" key={workflow.id}>
