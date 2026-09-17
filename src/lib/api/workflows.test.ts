@@ -40,8 +40,8 @@ describe('workflowsApi', () => {
     expect(mockedApiRequest).toHaveBeenCalledWith('/workflows/wf%2Ftenant%20boundary')
   })
 
-  it('uses the typed PATCH contract and encodes identifiers for workflow updates', async () => {
-    const input = { name: 'Invoice intake v2', status: 'active' as const }
+  it('uses the typed optimistic-concurrency PATCH contract and encodes identifiers', async () => {
+    const input = { expectedVersion: 3, name: 'Invoice intake v2', status: 'active' as const }
     mockedApiRequest.mockResolvedValue({ data: {} as never, meta: { requestId: 'req-4', timestamp: '2026-09-17T00:00:00.000Z' } })
 
     await workflowsApi.update('wf/tenant boundary', input)
