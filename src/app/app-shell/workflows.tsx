@@ -8,7 +8,6 @@ import { hasPermission } from '@/lib/auth/permissions'
 
 interface WorkflowPanelProps {
   role: UserRole
-  userId: string
 }
 
 const NEXT_STATUSES: Readonly<Record<WorkflowStatus, readonly WorkflowStatus[]>> = {
@@ -18,7 +17,7 @@ const NEXT_STATUSES: Readonly<Record<WorkflowStatus, readonly WorkflowStatus[]>>
   archived: [],
 }
 
-export default function WorkflowPanel({ role, userId }: WorkflowPanelProps) {
+export default function WorkflowPanel({ role }: WorkflowPanelProps) {
   const [workflows, setWorkflows] = useState<Workflow[]>([])
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -28,7 +27,7 @@ export default function WorkflowPanel({ role, userId }: WorkflowPanelProps) {
   const [error, setError] = useState<string | null>(null)
 
   const canCreate = hasPermission(role, 'workflow:create')
-  const canManageAll = hasPermission(role, 'workflow:manage')
+  const canRequestLifecycleChange = canCreate || hasPermission(role, 'workflow:manage')
 
   useEffect(() => {
     let cancelled = false
@@ -91,8 +90,7 @@ export default function WorkflowPanel({ role, userId }: WorkflowPanelProps) {
       {loading ? <p>Loading workflows…</p> : workflows.length === 0 ? <p>No workflows are configured for this organization yet.</p> : (
         <div>
           {workflows.map((workflow) => {
-            const canManageWorkflow = canManageAll || (canCreate && workflow.createdByUserId === userId)
-            const nextStatuses = canManageWorkflow ? NEXT_STATUSES[workflow.status] : []
+            const nextStatuses = canRequestLifecycleChange ? NEXT_STATUSES[workflow.status] : []
             return (
               <div className="activity-row" key={workflow.id}>
                 <div><strong>{workflow.name}</strong><span>{workflow.description || 'No description'}</span></div>
