@@ -22,7 +22,7 @@ export default async function AppShellPage() {
           <div className="panel-heading"><div><span className="eyebrow">SESSION</span><h2>Workspace ready</h2></div><span className="status-chip">Authenticated</span></div>
           <div className="activity-row"><div><strong>{session.user.displayName}</strong><span>{session.user.email}</span></div><span>{session.user.role}</span></div>
         </section>
-        <WorkflowPanel role={session.user.role} userId={session.user.id} />
+        <WorkflowPanel role={session.user.role} />
       </section>
     </main>
   )
