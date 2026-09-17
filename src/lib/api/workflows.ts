@@ -1,4 +1,4 @@
-import type { CreateWorkflowRequest, Workflow } from '@/contracts/workflows'
+import type { CreateWorkflowRequest, UpdateWorkflowRequest, Workflow } from '@/contracts/workflows'
 import { apiRequest } from './client'
 
 export const workflowsApi = {
@@ -9,4 +9,8 @@ export const workflowsApi = {
     body: JSON.stringify(input),
   }),
   get: (workflowId: string) => apiRequest<Workflow>(`/workflows/${encodeURIComponent(workflowId)}`),
+  update: (workflowId: string, input: UpdateWorkflowRequest) => apiRequest<Workflow>(`/workflows/${encodeURIComponent(workflowId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  }),
 }
