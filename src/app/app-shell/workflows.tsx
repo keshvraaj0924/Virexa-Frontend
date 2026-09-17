@@ -1,7 +1,7 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
-import type { Workflow } from '@/contracts/workflows'
+import type { Workflow, WorkflowStatus } from '@/contracts/workflows'
 import { workflowsApi } from '@/lib/api/workflows'
 import type { UserRole } from '@/contracts/auth'
 import { hasPermission } from '@/lib/auth/permissions'
@@ -10,15 +10,24 @@ interface WorkflowPanelProps {
   role: UserRole
 }
 
+const NEXT_STATUSES: Readonly<Record<WorkflowStatus, readonly WorkflowStatus[]>> = {
+  draft: ['active'],
+  active: ['paused', 'archived'],
+  paused: ['active', 'archived'],
+  archived: [],
+}
+
 export default function WorkflowPanel({ role }: WorkflowPanelProps) {
   const [workflows, setWorkflows] = useState<Workflow[]>([])
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [updatingWorkflowId, setUpdatingWorkflowId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const canCreate = hasPermission(role, 'workflow:create')
+  const canRequestLifecycleChange = canCreate || hasPermission(role, 'workflow:manage')
 
   useEffect(() => {
     let cancelled = false
@@ -51,6 +60,19 @@ export default function WorkflowPanel({ role }: WorkflowPanelProps) {
     }
   }
 
+  async function transitionWorkflow(workflowId: string, status: WorkflowStatus) {
+    setUpdatingWorkflowId(workflowId)
+    setError(null)
+    try {
+      const response = await workflowsApi.update(workflowId, { status })
+      setWorkflows((current) => current.map((workflow) => workflow.id === workflowId ? response.data : workflow))
+    } catch (cause: unknown) {
+      setError(cause instanceof Error ? cause.message : 'Unable to update workflow.')
+    } finally {
+      setUpdatingWorkflowId(null)
+    }
+  }
+
   return (
     <section className="dashboard-panel" aria-labelledby="workflow-heading">
       <div className="panel-heading">
@@ -67,12 +89,28 @@ export default function WorkflowPanel({ role }: WorkflowPanelProps) {
       {error && <p role="alert">{error}</p>}
       {loading ? <p>Loading workflows…</p> : workflows.length === 0 ? <p>No workflows are configured for this organization yet.</p> : (
         <div>
-          {workflows.map((workflow) => (
-            <div className="activity-row" key={workflow.id}>
-              <div><strong>{workflow.name}</strong><span>{workflow.description || 'No description'}</span></div>
-              <span>{workflow.status}</span>
-            </div>
-          ))}
+          {workflows.map((workflow) => {
+            const nextStatuses = canRequestLifecycleChange ? NEXT_STATUSES[workflow.status] : []
+            return (
+              <div className="activity-row" key={workflow.id}>
+                <div><strong>{workflow.name}</strong><span>{workflow.description || 'No description'}</span></div>
+                <div>
+                  <span>{workflow.status}</span>
+                  {nextStatuses.map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      className="header-link"
+                      disabled={updatingWorkflowId === workflow.id}
+                      onClick={() => void transitionWorkflow(workflow.id, status)}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
     </section>
