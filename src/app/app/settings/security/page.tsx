@@ -13,6 +13,7 @@ export default function SecuritySettingsPage() {
   const [sessions, setSessions] = useState<ActiveSession[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isRevoking, setIsRevoking] = useState(false)
+  const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,6 +34,25 @@ export default function SecuritySettingsPage() {
     void loadSessions()
   }, [loadSessions])
 
+  async function revokeSession(session: ActiveSession) {
+    setRevokingSessionId(session.id)
+    setMessage(null)
+    setError(null)
+    try {
+      await authApi.revokeSession(session.id)
+      if (session.current) {
+        window.location.assign('/login')
+        return
+      }
+      setMessage('Session revoked.')
+      await loadSessions()
+    } catch (requestError) {
+      setError(requestError instanceof ApiRequestError ? requestError.message : 'Unable to revoke this session.')
+    } finally {
+      setRevokingSessionId(null)
+    }
+  }
+
   async function revokeOtherSessions() {
     setIsRevoking(true)
     setMessage(null)
@@ -50,6 +70,7 @@ export default function SecuritySettingsPage() {
   }
 
   const otherSessionCount = sessions.filter((session) => !session.current).length
+  const mutationInProgress = isRevoking || revokingSessionId !== null
 
   return (
     <main className="security-settings" aria-labelledby="security-settings-title">
@@ -76,11 +97,23 @@ export default function SecuritySettingsPage() {
                   <p>Started {formatSessionTime(session.createdAt)}</p>
                   <p>Expires {formatSessionTime(session.expiresAt)}</p>
                 </div>
-                <span>{session.current ? 'This device' : 'Signed in'}</span>
+                <div>
+                  <span>{session.current ? 'This device' : 'Signed in'}</span>
+                  <button
+                    type="button"
+                    onClick={() => void revokeSession(session)}
+                    disabled={mutationInProgress}
+                    aria-label={session.current ? 'Sign out this session' : 'Revoke this session'}
+                  >
+                    {revokingSessionId === session.id ? 'Revoking…' : session.current ? 'Sign out' : 'Revoke'}
+                  </button>
+                </div>
               </article>
             ))}
           </div>
         ) : null}
+        {message ? <p role="status" className="security-success">{message}</p> : null}
+        {error ? <p role="alert" className="security-error">{error}</p> : null}
       </section>
 
       <section className="security-card" aria-labelledby="session-security-title">
@@ -89,11 +122,9 @@ export default function SecuritySettingsPage() {
           <h2 id="session-security-title">Sign out other sessions</h2>
           <p>Your current session stays active. {otherSessionCount} other active {otherSessionCount === 1 ? 'session is' : 'sessions are'} currently visible.</p>
         </div>
-        <button type="button" onClick={revokeOtherSessions} disabled={isRevoking || isLoading || otherSessionCount === 0}>
+        <button type="button" onClick={revokeOtherSessions} disabled={mutationInProgress || isLoading || otherSessionCount === 0}>
           {isRevoking ? 'Revoking…' : 'Sign out other sessions'}
         </button>
-        {message ? <p role="status" className="security-success">{message}</p> : null}
-        {error ? <p role="alert" className="security-error">{error}</p> : null}
       </section>
     </main>
   )
