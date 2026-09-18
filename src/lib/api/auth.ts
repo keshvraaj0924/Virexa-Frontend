@@ -65,6 +65,10 @@ export const authApi = {
   }),
   logout: () => request<ApiSuccess<{ success: boolean }>>('/auth/logout', { method: 'POST' }),
   revokeOtherSessions: () => request<ApiSuccess<RevokeOtherSessionsResult>>('/auth/sessions/revoke-others', { method: 'POST' }),
+  revokeSession: (sessionId: string) => request<ApiSuccess<{ success: boolean }>>(`/auth/sessions/${encodeURIComponent(sessionId)}`, {
+    method: 'DELETE',
+    cache: 'no-store',
+  }),
 }
 
 export type AuthApiResponse = ApiSuccess<AuthSession>
