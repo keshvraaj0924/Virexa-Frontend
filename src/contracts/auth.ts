@@ -31,6 +31,10 @@ export interface RegisterRequest {
   organizationName: string
 }
 
+export interface RevokeOtherSessionsResult {
+  revokedSessionCount: number
+}
+
 export type ApiErrorCode =
   | 'VALIDATION_ERROR'
   | 'UNTRUSTED_ORIGIN'
