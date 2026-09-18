@@ -1,5 +1,5 @@
 import type { ApiFailure, ApiMeta, ApiSuccess } from '../../contracts/api'
-import type { ApiErrorCode, AuthSession, LoginRequest, RegisterRequest } from '../../contracts/auth'
+import type { ApiErrorCode, AuthSession, LoginRequest, RegisterRequest, RevokeOtherSessionsResult } from '../../contracts/auth'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'
 
@@ -65,6 +65,7 @@ export const authApi = {
     body: JSON.stringify(input),
   }),
   logout: () => request<ApiSuccess<{ success: boolean }>>('/auth/logout', { method: 'POST' }),
+  revokeOtherSessions: () => request<ApiSuccess<RevokeOtherSessionsResult>>('/auth/sessions/revoke-others', { method: 'POST' }),
 }
 
 export type AuthApiResponse = ApiSuccess<AuthSession>
