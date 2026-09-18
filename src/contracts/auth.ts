@@ -14,6 +14,13 @@ export type Permission =
   | 'workflow:create'
   | 'workflow:manage'
 
+export interface ActiveSession {
+  id: string
+  createdAt: string
+  expiresAt: string
+  current: boolean
+}
+
 export interface RevokeOtherSessionsResult {
   revokedCount: number
 }
