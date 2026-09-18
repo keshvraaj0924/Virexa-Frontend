@@ -32,7 +32,7 @@ export interface RegisterRequest {
 }
 
 export interface RevokeOtherSessionsResult {
-  revokedSessionCount: number
+  revokedCount: number
 }
 
 export type ApiErrorCode =
