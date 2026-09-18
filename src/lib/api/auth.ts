@@ -1,5 +1,5 @@
 import type { ApiFailure, ApiMeta, ApiSuccess } from '../../contracts/api'
-import type { ApiErrorCode, AuthSession, LoginRequest, RegisterRequest, RevokeOtherSessionsResult } from '../../contracts/auth'
+import type { ActiveSession, ApiErrorCode, AuthSession, LoginRequest, RegisterRequest, RevokeOtherSessionsResult } from '../../contracts/auth'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'
 
@@ -18,9 +18,7 @@ export class ApiRequestError extends Error {
 }
 
 function createRequestId(): string | undefined {
-  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? crypto.randomUUID()
-    : undefined
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : undefined
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -56,6 +54,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const authApi = {
   session: () => request<ApiSuccess<AuthSession>>('/auth/session'),
   me: () => request<ApiSuccess<AuthSession>>('/me'),
+  activeSessions: () => request<ApiSuccess<ActiveSession[]>>('/auth/sessions', { cache: 'no-store' }),
   login: (input: LoginRequest) => request<ApiSuccess<AuthSession>>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(input),
