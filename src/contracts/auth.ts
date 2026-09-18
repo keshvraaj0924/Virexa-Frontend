@@ -14,6 +14,10 @@ export type Permission =
   | 'workflow:create'
   | 'workflow:manage'
 
+export interface RevokeOtherSessionsResult {
+  revokedCount: number
+}
+
 export type ApiErrorCode =
   | 'VALIDATION_ERROR'
   | 'UNTRUSTED_ORIGIN'
