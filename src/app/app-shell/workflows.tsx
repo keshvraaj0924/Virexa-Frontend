@@ -1,6 +1,7 @@
 'use client'
 
-import { FormEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import type { Workflow, WorkflowStatus } from '@/contracts/workflows'
 import { workflowsApi } from '@/lib/api/workflows'
 import type { UserRole } from '@/contracts/auth'
@@ -31,20 +32,28 @@ export default function WorkflowPanel({ role }: WorkflowPanelProps) {
 
   useEffect(() => {
     let cancelled = false
-    workflowsApi.list().then((response) => {
-      if (!cancelled) setWorkflows(response.data)
-    }).catch((cause: unknown) => {
-      if (!cancelled) setError(cause instanceof Error ? cause.message : 'Unable to load workflows.')
-    }).finally(() => {
-      if (!cancelled) setLoading(false)
-    })
-    return () => { cancelled = true }
+
+    workflowsApi.list()
+      .then((response) => {
+        if (!cancelled) setWorkflows(response.data)
+      })
+      .catch((cause: unknown) => {
+        if (!cancelled) setError(cause instanceof Error ? cause.message : 'Unable to load workflows.')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   async function createWorkflow(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitting(true)
     setError(null)
+
     try {
       const response = await workflowsApi.create(
         { name: name.trim(), description: description.trim() || null },
@@ -60,14 +69,18 @@ export default function WorkflowPanel({ role }: WorkflowPanelProps) {
     }
   }
 
-  async function transitionWorkflow(workflowId: string, status: WorkflowStatus) {
-    setUpdatingWorkflowId(workflowId)
+  async function transitionWorkflow(workflow: Workflow, status: WorkflowStatus) {
+    setUpdatingWorkflowId(workflow.id)
     setError(null)
+
     try {
-      const response = await workflowsApi.update(workflowId, { status })
-      setWorkflows((current) => current.map((workflow) => workflow.id === workflowId ? response.data : workflow))
+      const response = await workflowsApi.update(workflow.id, {
+        status,
+        expectedVersion: workflow.version,
+      })
+      setWorkflows((current) => current.map((item) => item.id === workflow.id ? response.data : item))
     } catch (cause: unknown) {
-      setError(cause instanceof Error ? cause.message : 'Unable to update workflow.')
+      setError(cause instanceof Error ? cause.message : 'Unable to update workflow. Refresh to load the latest version before retrying.')
     } finally {
       setUpdatingWorkflowId(null)
     }
@@ -102,7 +115,7 @@ export default function WorkflowPanel({ role }: WorkflowPanelProps) {
                       type="button"
                       className="header-link"
                       disabled={updatingWorkflowId === workflow.id}
-                      onClick={() => void transitionWorkflow(workflow.id, status)}
+                      onClick={() => void transitionWorkflow(workflow, status)}
                     >
                       {status}
                     </button>
