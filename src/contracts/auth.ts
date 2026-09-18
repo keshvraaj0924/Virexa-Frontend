@@ -5,31 +5,14 @@ export type UserRole =
   | 'operator'
   | 'viewer'
 
-export interface UserSummary {
-  id: string
-  email: string
-  displayName: string
-  role: UserRole
-  organizationId: string
-  organizationName: string
-}
-
-export interface AuthSession {
-  user: UserSummary
-  expiresAt: string
-}
-
-export interface LoginRequest {
-  email: string
-  password: string
-}
-
-export interface RegisterRequest {
-  displayName: string
-  email: string
-  password: string
-  organizationName: string
-}
+export type Permission =
+  | 'platform:read'
+  | 'platform:manage'
+  | 'organization:manage'
+  | 'audit:read'
+  | 'workflow:read'
+  | 'workflow:create'
+  | 'workflow:manage'
 
 export type ApiErrorCode =
   | 'VALIDATION_ERROR'
@@ -45,6 +28,36 @@ export type ApiErrorCode =
   | 'WORKFLOW_CONFLICT'
   | 'IDEMPOTENCY_KEY_REUSED'
   | 'RATE_LIMITED'
+
+export interface UserSummary {
+  id: string
+  email: string
+  displayName: string
+  role: UserRole
+  organizationId: string
+  organizationName: string
+}
+
+export interface AuthSession {
+  user: UserSummary
+  expiresAt: string
+}
+
+export interface AuthenticatedContext extends AuthSession {
+  permissions: readonly Permission[]
+}
+
+export interface LoginRequest {
+  email: string
+  password: string
+}
+
+export interface RegisterRequest {
+  displayName: string
+  email: string
+  password: string
+  organizationName: string
+}
 
 export interface ApiErrorBody {
   code: ApiErrorCode
