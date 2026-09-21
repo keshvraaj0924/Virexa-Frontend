@@ -15,7 +15,7 @@ describe('documentsApi v1 transport contract', () => {
     expect(apiRequest).toHaveBeenCalledWith('/documents?status=review_required&cursor=opaque%2B%2F%3D+cursor&limit=25')
   })
 
-  it('sends idempotency keys for document creation without tenant selection', async () => {
+  it('creates documents without tenant selection or unsupported idempotency semantics', async () => {
     apiRequest.mockResolvedValue({ id: 'document-1' })
     const input = {
       originalFileName: 'invoice.pdf',
@@ -23,16 +23,16 @@ describe('documentsApi v1 transport contract', () => {
       sizeBytes: 1024,
       checksumSha256: 'a'.repeat(64),
     }
-    await documentsApi.create(input, 'create-document-1')
+    await documentsApi.create(input)
     expect(apiRequest).toHaveBeenCalledWith('/documents', {
       method: 'POST',
-      headers: { 'Idempotency-Key': 'create-document-1' },
       body: JSON.stringify(input),
     })
     expect(JSON.parse(apiRequest.mock.calls[0][1].body)).not.toHaveProperty('organizationId')
+    expect(apiRequest.mock.calls[0][1]).not.toHaveProperty('headers')
   })
 
-  it('encodes document identifiers and sends an idempotency key when initiating upload', async () => {
+  it('encodes document identifiers and sends the required idempotency key when initiating upload', async () => {
     apiRequest.mockResolvedValue({})
     await documentsApi.initiateUpload('doc/with spaces', 'upload-1')
     expect(apiRequest).toHaveBeenCalledWith('/documents/doc%2Fwith%20spaces/uploads', {
@@ -42,13 +42,13 @@ describe('documentsApi v1 transport contract', () => {
     })
   })
 
-  it('encodes both resource identifiers and sends an idempotency key when completing upload', async () => {
+  it('encodes both resource identifiers without inventing completion idempotency headers', async () => {
     apiRequest.mockResolvedValue({})
-    await documentsApi.completeUpload('doc/1', 'attempt/1', 'complete-1')
+    await documentsApi.completeUpload('doc/1', 'attempt/1')
     expect(apiRequest).toHaveBeenCalledWith('/documents/doc%2F1/uploads/attempt%2F1/complete', {
       method: 'POST',
-      headers: { 'Idempotency-Key': 'complete-1' },
       body: JSON.stringify({}),
     })
+    expect(apiRequest.mock.calls[0][1]).not.toHaveProperty('headers')
   })
 })
