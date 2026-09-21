@@ -28,6 +28,7 @@ export default function DocumentsPanel({ role }: DocumentsPanelProps) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const requestSequenceRef = useRef(0)
   const canRead = hasPermission(role, 'document:read')
   const canCreate = hasPermission(role, 'document:create')
 
@@ -39,16 +40,21 @@ export default function DocumentsPanel({ role }: DocumentsPanelProps) {
   }), [documents])
 
   async function load(cursor?: string, append = false) {
+    const requestSequence = ++requestSequenceRef.current
     append ? setLoadingMore(true) : setLoading(true)
     setError(null)
     try {
       const response = await documentsApi.list({ status: status || undefined, cursor, limit: 24 })
+      if (requestSequence !== requestSequenceRef.current) return
       setDocuments((current) => append ? [...current, ...response.data.items] : response.data.items)
       setNextCursor(response.data.nextCursor)
     } catch (cause: unknown) {
+      if (requestSequence !== requestSequenceRef.current) return
       setError(cause instanceof Error ? cause.message : 'Unable to load documents.')
     } finally {
-      append ? setLoadingMore(false) : setLoading(false)
+      if (requestSequence === requestSequenceRef.current) {
+        append ? setLoadingMore(false) : setLoading(false)
+      }
     }
   }
 
