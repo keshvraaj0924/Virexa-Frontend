@@ -21,10 +21,9 @@ export const documentsApi = {
   list: (query?: DocumentListQuery) =>
     apiRequest<DocumentListResponse>(`/documents${documentListQuery(query)}`),
 
-  create: (input: CreateDocumentRequest, idempotencyKey: string) =>
+  create: (input: CreateDocumentRequest) =>
     apiRequest<DocumentRecord>('/documents', {
       method: 'POST',
-      headers: { 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify(input),
     }),
 
@@ -38,12 +37,11 @@ export const documentsApi = {
       },
     ),
 
-  completeUpload: (documentId: string, attemptId: string, idempotencyKey: string) =>
+  completeUpload: (documentId: string, attemptId: string) =>
     apiRequest<CompleteDocumentUploadResponse>(
       `/documents/${encodeURIComponent(documentId)}/uploads/${encodeURIComponent(attemptId)}/complete`,
       {
         method: 'POST',
-        headers: { 'Idempotency-Key': idempotencyKey },
         body: JSON.stringify({}),
       },
     ),
