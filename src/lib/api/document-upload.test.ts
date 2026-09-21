@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { create, initiateUpload, completeUpload } = vi.hoisted(() => ({
   create: vi.fn(),
