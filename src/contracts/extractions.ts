@@ -44,6 +44,11 @@ export interface ReviewDocumentExtractionRequest {
   fields: ReviewExtractionField[]
 }
 
+/** PATCH completion uses updatedAt from the last authoritative response as its optimistic concurrency token. */
+export interface CompleteDocumentExtractionRequest {
+  expectedUpdatedAt: string
+}
+
 /** GET /api/v1/documents/:documentId/extractions. Cursor is opaque. */
 export interface DocumentExtractionListQuery {
   status?: ExtractionStatus
@@ -63,4 +68,6 @@ export const EXTRACTIONS_API_V1 = {
     `/api/v1/documents/${encodeURIComponent(documentId)}/extractions`,
   review: (documentId: string, extractionId: string) =>
     `/api/v1/documents/${encodeURIComponent(documentId)}/extractions/${encodeURIComponent(extractionId)}/review`,
+  complete: (documentId: string, extractionId: string) =>
+    `/api/v1/documents/${encodeURIComponent(documentId)}/extractions/${encodeURIComponent(extractionId)}/complete`,
 } as const
