@@ -9,6 +9,7 @@ import { documentsApi } from '@/lib/api/documents'
 import { extractionsApi } from '@/lib/api/extractions'
 import { ApiError } from '@/lib/api/client'
 import { hasPermission } from '@/lib/auth/permissions'
+import { ExtractionCompletionAction } from './extraction-completion-action'
 
 interface DocumentsPanelProps { role: UserRole }
 
@@ -22,20 +23,12 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-function editableValue(value: ExtractionFieldValue): string {
-  return value === null ? '' : String(value)
-}
+function editableValue(value: ExtractionFieldValue): string { return value === null ? '' : String(value) }
 
 function preserveValueType(input: string, original: ExtractionFieldValue): ExtractionFieldValue {
   if (original === null) return input || null
-  if (typeof original === 'number') {
-    const parsed = Number(input)
-    return Number.isFinite(parsed) ? parsed : input
-  }
-  if (typeof original === 'boolean') {
-    if (input.toLowerCase() === 'true') return true
-    if (input.toLowerCase() === 'false') return false
-  }
+  if (typeof original === 'number') { const parsed = Number(input); return Number.isFinite(parsed) ? parsed : input }
+  if (typeof original === 'boolean') { if (input.toLowerCase() === 'true') return true; if (input.toLowerCase() === 'false') return false }
   return input
 }
 
@@ -63,88 +56,46 @@ export default function DocumentsPanel({ role }: DocumentsPanelProps) {
   const canCreate = hasPermission(role, 'document:create')
   const canManage = hasPermission(role, 'document:manage')
 
-  const metrics = useMemo(() => ({
-    visible: documents.length,
-    processing: documents.filter((item) => item.status === 'processing').length,
-    review: documents.filter((item) => item.status === 'review_required').length,
-    failed: documents.filter((item) => item.status === 'failed').length,
-  }), [documents])
+  const metrics = useMemo(() => ({ visible: documents.length, processing: documents.filter((item) => item.status === 'processing').length, review: documents.filter((item) => item.status === 'review_required').length, failed: documents.filter((item) => item.status === 'failed').length }), [documents])
 
   async function load(cursor?: string, append = false) {
     const requestSequence = ++requestSequenceRef.current
-    append ? setLoadingMore(true) : setLoading(true)
-    setError(null)
+    append ? setLoadingMore(true) : setLoading(true); setError(null)
     try {
       const response = await documentsApi.list({ status: status || undefined, cursor, limit: 24 })
       if (requestSequence !== requestSequenceRef.current) return
-      setDocuments((current) => append ? [...current, ...response.data.items] : response.data.items)
-      setNextCursor(response.data.nextCursor)
-    } catch (cause: unknown) {
-      if (requestSequence !== requestSequenceRef.current) return
-      setError(cause instanceof Error ? cause.message : 'Unable to load documents.')
-    } finally {
-      if (requestSequence === requestSequenceRef.current) append ? setLoadingMore(false) : setLoading(false)
-    }
+      setDocuments((current) => append ? [...current, ...response.data.items] : response.data.items); setNextCursor(response.data.nextCursor)
+    } catch (cause: unknown) { if (requestSequence === requestSequenceRef.current) setError(cause instanceof Error ? cause.message : 'Unable to load documents.') }
+    finally { if (requestSequence === requestSequenceRef.current) append ? setLoadingMore(false) : setLoading(false) }
   }
 
   async function inspect(document: DocumentRecord) {
     const requestSequence = ++extractionSequenceRef.current
-    setSelectedDocument(document)
-    setExtractions([])
-    setReviewingId(null)
-    setReviewMessage(null)
-    setReviewConflict(false)
-    setExtractionError(null)
-    setLoadingExtractions(true)
-    try {
-      const response = await extractionsApi.list(document.id, { limit: 20 })
-      if (requestSequence !== extractionSequenceRef.current) return
-      setExtractions(response.data.items)
-    } catch (cause: unknown) {
-      if (requestSequence !== extractionSequenceRef.current) return
-      setExtractionError(cause instanceof Error ? cause.message : 'Unable to load extraction history.')
-    } finally {
-      if (requestSequence === extractionSequenceRef.current) setLoadingExtractions(false)
-    }
+    setSelectedDocument(document); setExtractions([]); setReviewingId(null); setReviewMessage(null); setReviewConflict(false); setExtractionError(null); setLoadingExtractions(true)
+    try { const response = await extractionsApi.list(document.id, { limit: 20 }); if (requestSequence === extractionSequenceRef.current) setExtractions(response.data.items) }
+    catch (cause: unknown) { if (requestSequence === extractionSequenceRef.current) setExtractionError(cause instanceof Error ? cause.message : 'Unable to load extraction history.') }
+    finally { if (requestSequence === extractionSequenceRef.current) setLoadingExtractions(false) }
   }
 
   function beginReview(extraction: DocumentExtraction) {
-    setReviewingId(extraction.id)
-    setReviewDraft(Object.fromEntries(extraction.fields.map((field) => [field.key, editableValue(field.value)])))
-    setReviewMessage(null)
-    setReviewConflict(false)
+    setReviewingId(extraction.id); setReviewDraft(Object.fromEntries(extraction.fields.map((field) => [field.key, editableValue(field.value)]))); setReviewMessage(null); setReviewConflict(false)
   }
 
   async function submitReview(extraction: DocumentExtraction) {
     if (!selectedDocument) return
-    setReviewing(true)
-    setReviewMessage(null)
-    setReviewConflict(false)
+    setReviewing(true); setReviewMessage(null); setReviewConflict(false)
     try {
-      const response = await extractionsApi.review(selectedDocument.id, extraction.id, {
-        expectedUpdatedAt: extraction.updatedAt,
-        fields: extraction.fields.map((field) => ({ key: field.key, value: preserveValueType(reviewDraft[field.key] ?? '', field.value) })),
-      })
-      setExtractions((current) => current.map((item) => item.id === extraction.id ? response.data : item))
-      setReviewingId(null)
-      setReviewMessage('Review saved from the latest authoritative extraction version.')
+      const response = await extractionsApi.review(selectedDocument.id, extraction.id, { expectedUpdatedAt: extraction.updatedAt, fields: extraction.fields.map((field) => ({ key: field.key, value: preserveValueType(reviewDraft[field.key] ?? '', field.value) })) })
+      setExtractions((current) => current.map((item) => item.id === extraction.id ? response.data : item)); setReviewingId(null); setReviewMessage('Review saved from the latest authoritative extraction version.')
     } catch (cause: unknown) {
-      if (cause instanceof ApiError && cause.code === 'EXTRACTION_REVIEW_CONFLICT') {
-        setReviewConflict(true)
-        setReviewMessage('This extraction changed while you were reviewing it. Reload before applying corrections.')
-      } else {
-        setReviewMessage(cause instanceof Error ? cause.message : 'Unable to save extraction review.')
-      }
-    } finally {
-      setReviewing(false)
-    }
+      if (cause instanceof ApiError && cause.code === 'EXTRACTION_REVIEW_CONFLICT') { setReviewConflict(true); setReviewMessage('This extraction changed while you were reviewing it. Reload before applying corrections.') }
+      else setReviewMessage(cause instanceof Error ? cause.message : 'Unable to save extraction review.')
+    } finally { setReviewing(false) }
   }
 
   async function handleUpload(file: File) {
-    setUploading(true)
-    setError(null)
-    try { await uploadDocument(file); await load() }
-    catch (cause: unknown) { setError(cause instanceof Error ? cause.message : 'Unable to upload document.') }
+    setUploading(true); setError(null)
+    try { await uploadDocument(file); await load() } catch (cause: unknown) { setError(cause instanceof Error ? cause.message : 'Unable to upload document.') }
     finally { setUploading(false); if (fileInputRef.current) fileInputRef.current.value = '' }
   }
 
@@ -160,15 +111,12 @@ export default function DocumentsPanel({ role }: DocumentsPanelProps) {
       <article className="workflow-stat"><span>Needs review</span><strong>{metrics.review}</strong><small>Human attention required</small></article>
       <article className="workflow-stat"><span>Failed</span><strong>{metrics.failed}</strong><small>Operational exceptions</small></article>
     </section>
-
     {error && <section className="workflow-alert" role="alert"><strong>Document operation failed</strong><span>{error}</span><button type="button" onClick={() => void load()}>Retry</button></section>}
-
     <section className="dashboard-panel workflow-panel" aria-labelledby="documents-heading">
       <div className="panel-heading workflow-heading"><div><span className="eyebrow">INTELLIGENT INBOX</span><h2 id="documents-heading">Documents</h2><p>Live, tenant-scoped intake records with opaque cursor pagination.</p></div><div className="workflow-actions"><select aria-label="Filter by document status" value={status} onChange={(event) => setStatus(event.target.value as DocumentStatus | '')}><option value="">All statuses</option>{Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>{canCreate && <><input ref={fileInputRef} type="file" hidden disabled={uploading} aria-label="Choose document to upload" onChange={(event) => { const file = event.target.files?.[0]; if (file) void handleUpload(file) }}/><button type="button" className="primary-button" disabled={uploading} onClick={() => fileInputRef.current?.click()}>{uploading ? 'Uploading…' : 'Upload document'}</button></>}</div></div>
       {documents.length === 0 ? <div className="workflow-empty"><strong>No documents found</strong><p>{status ? 'No documents match this status.' : 'Documents will appear here after they enter the organization intake pipeline.'}</p></div> : <div className="workflow-grid">{documents.map((document) => <article className="workflow-card" key={document.id}><div className="workflow-card-top"><span className={`workflow-status workflow-status-${document.status === 'review_required' ? 'paused' : document.status === 'completed' ? 'active' : 'draft'}`}>{STATUS_LABELS[document.status]}</span><span className="workflow-version">{document.source}</span></div><h3 title={document.originalFileName}>{document.originalFileName}</h3><p>{document.mediaType} · {formatBytes(document.sizeBytes)}</p><div className="workflow-card-footer"><span className="workflow-id" title={document.id}>{document.id.slice(0, 8)}</span><button type="button" className="text-button" onClick={() => void inspect(document)}>Inspect AI extraction</button></div></article>)}</div>}
       {nextCursor && <div className="workflow-actions"><button type="button" className="primary-button" disabled={loadingMore} onClick={() => void load(nextCursor, true)}>{loadingMore ? 'Loading…' : 'Load more'}</button></div>}
     </section>
-
     {selectedDocument && <section className="dashboard-panel workflow-panel" aria-labelledby="extraction-heading">
       <div className="panel-heading workflow-heading"><div><span className="eyebrow">AI EXTRACTION</span><h2 id="extraction-heading">{selectedDocument.originalFileName}</h2><p>Live extraction history with permission-gated optimistic human review.</p></div><button type="button" className="text-button" onClick={() => { extractionSequenceRef.current += 1; setSelectedDocument(null); setExtractions([]); setReviewingId(null) }}>Close</button></div>
       {reviewMessage && <div className={reviewConflict ? 'workflow-alert' : 'workflow-state'} role={reviewConflict ? 'alert' : 'status'}><div><strong>{reviewConflict ? 'Review conflict' : 'Review updated'}</strong><p>{reviewMessage}</p>{reviewConflict && <button type="button" onClick={() => void inspect(selectedDocument)}>Reload authoritative version</button>}</div></div>}
@@ -177,6 +125,7 @@ export default function DocumentsPanel({ role }: DocumentsPanelProps) {
           <div className="workflow-card-top"><span className={`workflow-status workflow-status-${extraction.status === 'completed' ? 'active' : extraction.status === 'review_required' ? 'paused' : 'draft'}`}>{extraction.status.replace('_', ' ')}</span><span className="workflow-version">Schema {extraction.schemaVersion}</span></div>
           <h3>{extraction.fields.length} extracted fields</h3>
           {reviewingId === extraction.id ? <div>{extraction.fields.map((field) => <label key={field.key} className="review-field"><span><strong>{field.key}</strong><small>{Math.round(field.confidence * 100)}% confidence{field.requiresReview ? ' · review required' : ''}</small></span><input aria-label={`Review ${field.key}`} value={reviewDraft[field.key] ?? ''} onChange={(event) => setReviewDraft((current) => ({ ...current, [field.key]: event.target.value }))}/></label>)}<div className="workflow-actions"><button type="button" className="primary-button" disabled={reviewing || reviewConflict} onClick={() => void submitReview(extraction)}>{reviewing ? 'Saving…' : 'Approve corrections'}</button><button type="button" className="text-button" disabled={reviewing} onClick={() => setReviewingId(null)}>Cancel</button></div></div> : extraction.fields.length > 0 ? <div>{extraction.fields.slice(0, 5).map((field) => <p key={field.key}><strong>{field.key}</strong>: {String(field.value ?? '—')} · {Math.round(field.confidence * 100)}%{field.requiresReview ? ' · review' : ''}</p>)}</div> : <p>Fields are not available for this lifecycle state.</p>}
+          {canManage && reviewingId !== extraction.id && <ExtractionCompletionAction documentId={selectedDocument.id} extraction={extraction} disabled={reviewConflict} onCompleted={(completed) => { setExtractions((current) => current.map((item) => item.id === completed.id ? completed : item)); setReviewMessage('Extraction review completed from the authoritative backend state.'); setReviewConflict(false) }} onConflict={() => { setReviewConflict(true); setReviewMessage('This extraction changed before completion. Reload the authoritative version before completing review.') }}/>} 
           <div className="workflow-card-footer"><span className="workflow-id" title={extraction.id}>{extraction.id.slice(0, 8)}</span>{canManage && extraction.status === 'review_required' && reviewingId !== extraction.id ? <button type="button" className="text-button" onClick={() => beginReview(extraction)}>Review fields</button> : <span>{new Date(extraction.updatedAt).toLocaleString()}</span>}</div>
         </article>)}
       </div>}
