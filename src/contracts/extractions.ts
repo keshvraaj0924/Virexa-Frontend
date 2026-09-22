@@ -15,10 +15,7 @@ export interface ExtractionField {
   requiresReview: boolean
 }
 
-/**
- * Public /api/v1 projection. Tenant identifiers and AI provider/model internals
- * are deliberately absent; organization scope is server-authoritative.
- */
+/** Public /api/v1 projection; tenant/provider/model internals remain server-authoritative. */
 export interface DocumentExtraction {
   id: string
   documentId: string
@@ -34,6 +31,17 @@ export interface DocumentExtraction {
 /** POST /api/v1/documents/:documentId/extractions. Idempotency-Key is required. */
 export interface CreateDocumentExtractionRequest {
   schemaVersion: string
+}
+
+export interface ReviewExtractionField {
+  key: string
+  value: ExtractionFieldValue
+}
+
+/** PATCH review uses updatedAt from the last authoritative GET as its optimistic concurrency token. */
+export interface ReviewDocumentExtractionRequest {
+  expectedUpdatedAt: string
+  fields: ReviewExtractionField[]
 }
 
 /** GET /api/v1/documents/:documentId/extractions. Cursor is opaque. */
@@ -53,4 +61,6 @@ export const EXTRACTIONS_API_V1 = {
     `/api/v1/documents/${encodeURIComponent(documentId)}/extractions`,
   create: (documentId: string) =>
     `/api/v1/documents/${encodeURIComponent(documentId)}/extractions`,
+  review: (documentId: string, extractionId: string) =>
+    `/api/v1/documents/${encodeURIComponent(documentId)}/extractions/${encodeURIComponent(extractionId)}/review`,
 } as const
