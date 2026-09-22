@@ -1,4 +1,5 @@
 import type {
+  CompleteDocumentExtractionRequest,
   CreateDocumentExtractionRequest,
   DocumentExtraction,
   DocumentExtractionListQuery,
@@ -19,6 +20,12 @@ function extractionListQuery(input: DocumentExtractionListQuery = {}): string {
   return encoded ? `?${encoded}` : ''
 }
 
+function assertConcurrencyTimestamp(expectedUpdatedAt: string): void {
+  if (!expectedUpdatedAt || Number.isNaN(Date.parse(expectedUpdatedAt))) {
+    throw new RangeError('expectedUpdatedAt must be a valid ISO timestamp')
+  }
+}
+
 export const extractionsApi = {
   list: (documentId: string, query?: DocumentExtractionListQuery) =>
     apiRequest<DocumentExtractionListResponse>(
@@ -35,9 +42,7 @@ export const extractionsApi = {
   },
 
   review: (documentId: string, extractionId: string, input: ReviewDocumentExtractionRequest) => {
-    if (!input.expectedUpdatedAt || Number.isNaN(Date.parse(input.expectedUpdatedAt))) {
-      throw new RangeError('expectedUpdatedAt must be a valid ISO timestamp')
-    }
+    assertConcurrencyTimestamp(input.expectedUpdatedAt)
     if (input.fields.length < 1 || input.fields.length > 256) {
       throw new RangeError('Review must contain between 1 and 256 fields')
     }
@@ -50,6 +55,14 @@ export const extractionsApi = {
     }
     return apiRequest<DocumentExtraction>(
       `/documents/${encodeURIComponent(documentId)}/extractions/${encodeURIComponent(extractionId)}/review`,
+      { method: 'PATCH', cache: 'no-store', body: JSON.stringify(input) },
+    )
+  },
+
+  complete: (documentId: string, extractionId: string, input: CompleteDocumentExtractionRequest) => {
+    assertConcurrencyTimestamp(input.expectedUpdatedAt)
+    return apiRequest<DocumentExtraction>(
+      `/documents/${encodeURIComponent(documentId)}/extractions/${encodeURIComponent(extractionId)}/complete`,
       { method: 'PATCH', cache: 'no-store', body: JSON.stringify(input) },
     )
   },
