@@ -48,4 +48,26 @@ describe('extractionsApi v1 transport contract', () => {
     expect(() => extractionsApi.create('document-1', { schemaVersion: 'invoice-v1' }, '   ')).toThrow(RangeError)
     expect(apiRequest).not.toHaveBeenCalled()
   })
+
+  it('completes review through the versioned mutation contract without tenant scope', async () => {
+    apiRequest.mockResolvedValue({ data: {}, meta: {} })
+    const input = { expectedUpdatedAt: '2026-09-22T12:30:00.000Z' }
+
+    await extractionsApi.complete('doc/1', 'extraction/1', input)
+
+    expect(apiRequest).toHaveBeenCalledWith(
+      '/documents/doc%2F1/extractions/extraction%2F1/complete',
+      { method: 'PATCH', cache: 'no-store', body: JSON.stringify(input) },
+    )
+    const body = JSON.parse(apiRequest.mock.calls[0][1].body)
+    expect(body).toEqual(input)
+    expect(body).not.toHaveProperty('organizationId')
+    expect(body).not.toHaveProperty('status')
+    expect(body).not.toHaveProperty('completedAt')
+  })
+
+  it('rejects an invalid completion concurrency token before transport', () => {
+    expect(() => extractionsApi.complete('document-1', 'extraction-1', { expectedUpdatedAt: 'invalid' })).toThrow(RangeError)
+    expect(apiRequest).not.toHaveBeenCalled()
+  })
 })
