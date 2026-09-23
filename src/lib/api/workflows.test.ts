@@ -6,22 +6,32 @@ vi.mock('./client', () => ({ apiRequest: vi.fn() }))
 
 const mockedApiRequest = vi.mocked(apiRequest)
 
-describe('workflowsApi', () => {
+describe('workflowsApi v1 transport contract', () => {
   beforeEach(() => {
     mockedApiRequest.mockReset()
   })
 
-  it('uses the versioned shared transport for tenant-scoped listing', async () => {
-    mockedApiRequest.mockResolvedValue({ data: [], meta: { requestId: 'req-1', timestamp: '2026-09-16T00:00:00.000Z' } })
+  it('preserves opaque pagination and status filtering without tenant selection', async () => {
+    mockedApiRequest.mockResolvedValue({} as never)
 
-    await workflowsApi.list(25)
+    await workflowsApi.list({ status: 'active', cursor: 'opaque+/= cursor', limit: 25 })
 
-    expect(mockedApiRequest).toHaveBeenCalledWith('/workflows?limit=25')
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      '/workflows?status=active&cursor=opaque%2B%2F%3D+cursor&limit=25',
+    )
+  })
+
+  it('uses the server defaults when no list query is supplied', async () => {
+    mockedApiRequest.mockResolvedValue({} as never)
+
+    await workflowsApi.list()
+
+    expect(mockedApiRequest).toHaveBeenCalledWith('/workflows')
   })
 
   it('preserves caller-provided idempotency keys for workflow creation', async () => {
     const input = { name: 'Invoice intake', description: 'AP automation' }
-    mockedApiRequest.mockResolvedValue({ data: {} as never, meta: { requestId: 'req-2', timestamp: '2026-09-16T00:00:00.000Z' } })
+    mockedApiRequest.mockResolvedValue({} as never)
 
     await workflowsApi.create(input, 'idem-123')
 
@@ -33,7 +43,7 @@ describe('workflowsApi', () => {
   })
 
   it('encodes workflow identifiers before fetching a resource', async () => {
-    mockedApiRequest.mockResolvedValue({ data: {} as never, meta: { requestId: 'req-3', timestamp: '2026-09-16T00:00:00.000Z' } })
+    mockedApiRequest.mockResolvedValue({} as never)
 
     await workflowsApi.get('wf/tenant boundary')
 
@@ -42,7 +52,7 @@ describe('workflowsApi', () => {
 
   it('uses the typed optimistic-concurrency PATCH contract and encodes identifiers', async () => {
     const input = { expectedVersion: 3, name: 'Invoice intake v2', status: 'active' as const }
-    mockedApiRequest.mockResolvedValue({ data: {} as never, meta: { requestId: 'req-4', timestamp: '2026-09-17T00:00:00.000Z' } })
+    mockedApiRequest.mockResolvedValue({} as never)
 
     await workflowsApi.update('wf/tenant boundary', input)
 
