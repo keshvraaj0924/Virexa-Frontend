@@ -12,7 +12,7 @@ describe('workflowsApi v1 transport contract', () => {
   })
 
   it('preserves opaque pagination and status filtering without tenant selection', async () => {
-    mockedApiRequest.mockResolvedValue({ items: [], nextCursor: null })
+    mockedApiRequest.mockResolvedValue({} as never)
 
     await workflowsApi.list({ status: 'active', cursor: 'opaque+/= cursor', limit: 25 })
 
@@ -22,7 +22,7 @@ describe('workflowsApi v1 transport contract', () => {
   })
 
   it('uses the server defaults when no list query is supplied', async () => {
-    mockedApiRequest.mockResolvedValue({ items: [], nextCursor: null })
+    mockedApiRequest.mockResolvedValue({} as never)
 
     await workflowsApi.list()
 
