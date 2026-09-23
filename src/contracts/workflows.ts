@@ -24,3 +24,14 @@ export interface UpdateWorkflowRequest {
   description?: string | null
   status?: WorkflowStatus
 }
+
+export interface WorkflowListQuery {
+  status?: WorkflowStatus
+  limit?: number
+  cursor?: string
+}
+
+export interface WorkflowListResponse {
+  items: Workflow[]
+  nextCursor: string | null
+}
