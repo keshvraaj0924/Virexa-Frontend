@@ -35,7 +35,7 @@ export default function WorkflowPanel({ role }: WorkflowPanelProps) {
 
   useEffect(() => {
     let cancelled = false
-    workflowsApi.list().then((response) => { if (!cancelled) setWorkflows(response.data) })
+    workflowsApi.list().then((response) => { if (!cancelled) setWorkflows(response.data.items) })
       .catch((cause: unknown) => { if (!cancelled) setError(cause instanceof Error ? cause.message : 'Unable to load workflows.') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
