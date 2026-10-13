@@ -13,6 +13,12 @@ export type Permission =
   | 'workflow:read'
   | 'workflow:create'
   | 'workflow:manage'
+  | 'document:read'
+  | 'document:create'
+  | 'document:manage'
+  | 'agent:read'
+  | 'agent:create'
+  | 'agent:manage'
 
 export interface ActiveSession {
   id: string
@@ -37,6 +43,18 @@ export type ApiErrorCode =
   | 'INVALID_CREDENTIALS'
   | 'INVALID_STATE_TRANSITION'
   | 'WORKFLOW_CONFLICT'
+  | 'AGENT_CONFLICT'
+  | 'INVALID_TENANT_REFERENCE'
+  | 'INVALID_CURSOR'
+  | 'DOCUMENT_CHECKSUM_CONFLICT'
+  | 'DOCUMENT_EXTERNAL_REFERENCE_CONFLICT'
+  | 'DOCUMENT_STORAGE_UNAVAILABLE'
+  | 'DOCUMENT_UPLOAD_CONFLICT'
+  | 'DOCUMENT_UPLOAD_NOT_FOUND'
+  | 'EXTRACTION_REVIEW_FIELD_NOT_FOUND'
+  | 'EXTRACTION_REVIEW_CONFLICT'
+  | 'EXTRACTION_COMPLETION_INVALID_STATE'
+  | 'EXTRACTION_COMPLETION_CONFLICT'
   | 'IDEMPOTENCY_KEY_REUSED'
   | 'RATE_LIMITED'
 
