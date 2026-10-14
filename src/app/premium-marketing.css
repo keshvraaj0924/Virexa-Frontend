@@ -1,0 +1,56 @@
+/* Scoped premium marketing design; authenticated app styles remain unchanged. */
+.vx-landing{background:#f8faff;color:#101c2c;overflow:hidden}
+.vx-landing *{box-sizing:border-box}
+.vx-dark-stage{position:relative;isolation:isolate;color:#fff;overflow:hidden;background:radial-gradient(ellipse at 75% 65%,#163e90,#070e25 58%,#040814)}
+.vx-ambient-canvas,.vx-stage-texture{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.vx-ambient-canvas{z-index:-2;opacity:.9}
+.vx-stage-texture{z-index:-1;opacity:.25;background-image:linear-gradient(#ffffff12 1px,transparent 1px),linear-gradient(90deg,#ffffff12 1px,transparent 1px);background-size:90px 90px}
+.vx-site-nav{position:relative;max-width:1500px;min-height:82px;margin:auto;padding:0 5vw;display:flex;align-items:center;justify-content:space-between;gap:28px;border-bottom:1px solid #ffffff1a}
+.vx-wordmark{display:inline-flex;align-items:center;gap:9px;font-size:18px;font-weight:850;letter-spacing:.1em;white-space:nowrap}
+.vx-wordmark-icon{width:31px;height:31px}
+.vx-site-links,.vx-site-actions{display:flex;align-items:center;gap:28px}
+.vx-site-links a,.vx-nav-signin{color:#c5d3ed;font-size:13px;font-weight:650}
+.vx-site-links a:hover,.vx-nav-signin:hover{color:#fff}
+.vx-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;border-radius:9px;padding:13px 20px;font-size:13px;font-weight:750;white-space:nowrap;transition:transform .2s,background .2s}
+.vx-button:hover{transform:translateY(-2px)}
+.vx-button-blue{background:linear-gradient(135deg,#2376db,#438fff);color:#fff;box-shadow:0 10px 26px #1558be40}
+.vx-button-outline{color:#fff;background:#ffffff10;border:1px solid #ffffff55}
+.vx-hero{max-width:1500px;min-height:640px;display:grid;grid-template-columns:1.05fr 1fr;align-items:center;gap:28px;margin:auto;padding:90px 6vw 90px;position:relative}
+.vx-hero-content{position:relative;z-index:2}
+.vx-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10px;font-weight:850;letter-spacing:.14em}
+.vx-eyebrow-light{color:#aed5ff}
+.vx-hero h1{font-size:clamp(62px,6.5vw,105px);letter-spacing:-.07em;line-height:.98;margin:24px 0;font-weight:850}
+.vx-hero h1 span{background:linear-gradient(100deg,#5ac5ff,#4988ff 70%,#a6a3ff);background-clip:text;-webkit-text-fill-color:transparent}
+.vx-hero-content>p{color:#c6d2e8;font-size:clamp(16px,1.5vw,20px);line-height:1.65;max-width:565px;margin:0}
+.vx-hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+.vx-hero-assurances{display:flex;flex-wrap:wrap;gap:24px;margin-top:42px;color:#afc0df;font-size:12px}
+.vx-hero-assurances span{display:inline-flex;align-items:center;gap:8px}
+.vx-hero-assurances svg{color:#76b9ff}
+.vx-hero-visual{position:relative;height:470px;isolation:isolate}
+.vx-visual-halo{position:absolute;inset:12% 4%;border-radius:50%;filter:blur(25px);background:radial-gradient(ellipse,#3979e577,transparent 70%)}
+.vx-document{position:absolute;top:64px;left:10%;width:245px;height:322px;padding:24px;border:1px solid #c2dcff;border-radius:12px;background:linear-gradient(135deg,#e8f3ff,#a8c8f0);color:#213c66;box-shadow:0 20px 65px #02091a99}
+.vx-document-back{transform:rotate(-13deg);opacity:.5}
+.vx-document-mid{left:21%;transform:rotate(-6deg);opacity:.78}
+.vx-document-front{left:33%;top:58px;transform:rotate(4deg);background:linear-gradient(145deg,#f8fbff,#d9eaff)}
+.vx-doc-overline{display:block;font-size:12px;font-weight:850;letter-spacing:.1em;margin-bottom:35px}
+.vx-doc-head{display:flex;align-items:center;gap:9px;font-size:20px}
+.vx-doc-head svg{color:#357dd2}
+.vx-doc-sub{display:block;font-size:10px;color:#8191a9;margin-top:8px}
+.vx-doc-divider{height:1px;background:#cbdceb;margin:23px 0}
+.vx-doc-line{display:block;height:8px;margin:12px 0;border-radius:5px;background:#c8d9eb}
+.vx-doc-line.short{width:60%}
+.vx-doc-table{display:grid;gap:8px;margin:22px 0}
+.vx-doc-table i{height:9px;background:linear-gradient(90deg,#bed0e3 40%,#e9f0f8 40%,#e9f0f8 75%,#bed0e3 75%);border-radius:3px}
+.vx-doc-total{display:flex;justify-content:space-between;font-size:11px;font-weight:750}
+.vx-doc-total strong{color:#07956f}
+.vx-process-glass{position:absolute;right:-2%;top:146px;width:265px;padding:18px 18px 10px;border-radius:13px;border:1px solid #81aaf055;background:#0c1734f2;box-shadow:0 22px 65px #0009;backdrop-filter:blur(15px)}
+.vx-process-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:800;padding-bottom:14px;border-bottom:1px solid #ffffff24}
+.vx-process-badge{border:1px solid #50658d;border-radius:5px;padding:4px 5px;color:#b2cdf5;font-size:9px}
+.vx-process-row{display:flex;align-items:center;gap:10px;padding:11px 0;font-size:11px;color:#dae6fb}
+.vx-process-icon{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#096f64;color:#dcfff3}
+.vx-process-pending .vx-process-icon{background:#2d4377;color:#d6e7ff}
+.vx-stage-bottom{position:relative;min-height:83px;padding:22px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5vw;border-top:1px solid #ffffff24;background:#030a1b55}
+.vx-stage-bottom span{display:flex;align-items:center;gap:10px;color:#c5d4ef;font-size:12px;font-weight:650}
+.vx-stage-bottom svg{color:#65aeff}
+.vx-landing a:focus-visible{outline:3px solid #75bcff;outline-offset:4px}
+@media(prefers-reduced-motion:reduce){.vx-landing *{transition:none!important;animation:none!important}}
