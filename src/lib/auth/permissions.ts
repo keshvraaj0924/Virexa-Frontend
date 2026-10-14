@@ -1,21 +1,8 @@
-import type { UserRole } from '@/contracts/auth'
+import type { UserRole, Permission } from '@/contracts/auth'
 
 export type Role = UserRole
 
-export type Permission =
-  | 'platform:read'
-  | 'platform:manage'
-  | 'organization:manage'
-  | 'audit:read'
-  | 'workflow:read'
-  | 'workflow:create'
-  | 'workflow:manage'
-  | 'document:read'
-  | 'document:create'
-  | 'document:manage'
-  | 'agent:read'
-  | 'agent:create'
-  | 'agent:manage'
+export type { Permission } from '@/contracts/auth'
 
 const ROLE_PERMISSIONS: Record<Role, ReadonlySet<Permission>> = {
   super_admin: new Set(['platform:read', 'platform:manage', 'organization:manage', 'audit:read', 'workflow:read', 'workflow:create', 'workflow:manage', 'document:read', 'document:create', 'document:manage', 'agent:read', 'agent:create', 'agent:manage']),

@@ -25,3 +25,18 @@ describe('hasPermission', () => {
     expect(hasPermission('operator', 'workflow:create')).toBe(true)
   })
 })
+
+
+describe('Agent v1 RBAC parity', () => {
+  it.each([
+    ['super_admin', true, true, true],
+    ['admin', true, true, true],
+    ['manager', true, true, true],
+    ['operator', true, true, false],
+    ['viewer', true, false, false],
+  ] as const)('aligns %s Agent permissions with the backend', (role, read, create, manage) => {
+    expect(hasPermission(role, 'agent:read')).toBe(read)
+    expect(hasPermission(role, 'agent:create')).toBe(create)
+    expect(hasPermission(role, 'agent:manage')).toBe(manage)
+  })
+})
