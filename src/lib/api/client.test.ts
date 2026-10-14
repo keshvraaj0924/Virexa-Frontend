@@ -47,3 +47,35 @@ describe('apiRequest error contract', () => {
     } satisfies Partial<ApiError>)
   })
 })
+
+describe('authenticated API cache isolation', () => {
+  it('overrides a force-cache GET and preserves session credentials', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      data: { items: [], nextCursor: null },
+      meta: { requestId: 'req_private_get', timestamp: '2026-10-14T00:00:00.000Z' },
+    }), { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiRequest('/agents?limit=1', { cache: 'force-cache', credentials: 'omit' })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/agents?limit=1'),
+      expect.objectContaining({ cache: 'no-store', credentials: 'include' }),
+    )
+  })
+
+  it('applies no-store to failed Agent mutations and preserves backend error metadata', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      error: { code: 'FORBIDDEN', message: 'Access denied', requestId: 'req_private_denied' },
+      meta: { requestId: 'req_private_denied', timestamp: '2026-10-14T00:00:00.000Z' },
+    }), { status: 403 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(apiRequest('/agents', { method: 'POST', cache: 'force-cache', body: '{}' }))
+      .rejects.toMatchObject({ code: 'FORBIDDEN', status: 403, requestId: 'req_private_denied' } satisfies Partial<ApiError>)
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/agents'),
+      expect.objectContaining({ cache: 'no-store', credentials: 'include', method: 'POST' }),
+    )
+  })
+})
