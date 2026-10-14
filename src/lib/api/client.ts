@@ -64,6 +64,9 @@ function isApiErrorEnvelope(payload: ApiEnvelope<unknown> | ApiErrorEnvelope | n
 export async function apiRequest<T>(path: string, init?: RequestInit): Promise<ApiEnvelope<T>> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
+    // All credentialed API responses are tenant-scoped; never cache them.
+    // This intentionally overrides any cache mode provided by the caller.
+    cache: 'no-store',
     credentials: 'include',
     headers: {
       Accept: 'application/json',
