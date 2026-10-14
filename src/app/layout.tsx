@@ -3,6 +3,7 @@ import './globals.css'
 import './marketing.css'
 import './premium-marketing.css'
 import './auth.css'
+import './premium-auth.css'
 import './app-shell.css'
 
 export const metadata: Metadata = {
