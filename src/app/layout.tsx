@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import './marketing.css'
+import './premium-marketing.css'
 import './auth.css'
 import './app-shell.css'
 
