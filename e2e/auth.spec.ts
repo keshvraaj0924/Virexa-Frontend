@@ -12,7 +12,7 @@ test('desktop login renders, reveals password and keeps real failure visible', a
   await expect(page.getByLabel('Password', { exact: true })).toHaveAttribute('type', 'text')
   await page.getByRole('button', { name: 'Hide password' }).click()
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
-  await expect(page.getByRole('alert')).toHaveText('Invalid email or password.')
+  await expect(page.locator('form').getByRole('alert')).toHaveText('Invalid email or password.')
   await expect(page).toHaveURL(/\/login$/)
   await page.screenshot({ path: 'test-results/login-error.png', fullPage: true })
 })
