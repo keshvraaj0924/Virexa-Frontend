@@ -20,8 +20,10 @@ export default function SecuritySettingsPage() {
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const busy = useRef(false)
   const generation = useRef(0)
+  const mounted = useRef(true)
 
   const handleError = useCallback((requestError: unknown, fallback: string) => {
+    if (!mounted.current) return
     if (requestError instanceof ApiRequestError && requestError.code === 'UNAUTHENTICATED') {
       setSessions([])
       window.location.replace('/login')
@@ -35,13 +37,13 @@ export default function SecuritySettingsPage() {
     setIsLoading(true)
     try {
       const response = await authApi.activeSessions(cursor)
-      if (generation.current !== currentGeneration) return
+      if (!mounted.current || generation.current !== currentGeneration) return
       setSessions(previous => cursor
         ? [...previous, ...response.data.filter(item => !previous.some(existing => existing.id === item.id))]
         : response.data)
       setNextCursor(response.meta.pagination?.nextCursor ?? null)
     } finally {
-      if (generation.current === currentGeneration) setIsLoading(false)
+      if (mounted.current && generation.current === currentGeneration) setIsLoading(false)
     }
   }, [])
 
@@ -56,7 +58,9 @@ export default function SecuritySettingsPage() {
   }, [loadSessions, handleError])
 
   useEffect(() => {
+    mounted.current = true
     void refresh()
+    return () => { mounted.current = false }
   }, [refresh])
 
   async function revokeSession(session: ActiveSession) {
@@ -67,6 +71,7 @@ export default function SecuritySettingsPage() {
     setError(null)
     try {
       await authApi.revokeSession(session.id)
+      if (!mounted.current) return
       if (session.current) {
         setSessions([])
         window.location.replace('/login')
@@ -78,7 +83,7 @@ export default function SecuritySettingsPage() {
       handleError(requestError, 'Unable to revoke this session.')
     } finally {
       busy.current = false
-      setRevokingSessionId(null)
+      if (mounted.current) setRevokingSessionId(null)
     }
   }
 
@@ -90,6 +95,7 @@ export default function SecuritySettingsPage() {
     setError(null)
     try {
       const response = await authApi.revokeOtherSessions()
+      if (!mounted.current) return
       const count = response.data.revokedCount
       setMessage(count === 1 ? '1 other session was revoked.' : `${count} other sessions were revoked.`)
       await loadSessions()
@@ -97,7 +103,7 @@ export default function SecuritySettingsPage() {
       handleError(requestError, 'Unable to revoke other sessions.')
     } finally {
       busy.current = false
-      setIsRevoking(false)
+      if (mounted.current) setIsRevoking(false)
     }
   }
 

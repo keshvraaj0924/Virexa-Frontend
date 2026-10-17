@@ -65,3 +65,11 @@ it('shows load failure instead of claiming there are no active sessions', async 
   fireEvent.click(screen.getByRole('button', { name: 'Refresh sessions' }))
   await screen.findByText('Current session')
 })
+it('ignores an inventory response after the page unmounts', async () => {
+  let resolve!: (value: ReturnType<typeof page>) => void
+  vi.mocked(authApi.activeSessions).mockReturnValueOnce(new Promise(done => { resolve = done }))
+  const view = render(<SecuritySettingsPage />)
+  view.unmount()
+  await act(async () => resolve(page([current, other], 'cursor')))
+  expect(screen.queryByText('Current session')).toBeNull()
+})

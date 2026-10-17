@@ -87,3 +87,31 @@ test('expired inventory redirects cleanly to login', async ({ page }) => {
   await page.goto('/app/settings/security')
   await expect(page).toHaveURL(`${origin}/login`)
 })
+
+test('a late unauthorized inventory response cannot undo newer navigation', async ({ page }) => {
+  const email = `sessions-navigation-${Date.now()}@example.com`
+  await register(page.request, email)
+  await page.goto('/app/settings/security')
+  await expect(page.getByText('Current session', { exact: true })).toBeVisible()
+  let release!: () => void
+  let intercepted = false
+  const held = new Promise<void>(resolve => { release = resolve })
+  await page.route('**/api/v1/auth/sessions?*', async route => {
+    intercepted = true
+    await held
+    await route.continue().catch(() => {})
+  }, { times: 1 })
+  await page.getByRole('button', { name: 'Refresh sessions' }).click()
+  await expect.poll(() => intercepted).toBe(true)
+  await page.getByRole('link', { name: 'Dashboard', exact: true }).click()
+  await expect(page).toHaveURL(`${origin}/app`)
+  seed(email, 'expire')
+  const response = page.waitForResponse(response => response.url().includes('/api/v1/auth/sessions?') && response.status() === 401)
+  release()
+  await (await response).finished()
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+  await expect(page.getByRole('heading', { name: 'Dashboard', exact: true })).toBeVisible()
+  await expect(page).toHaveURL(`${origin}/app`)
+  await page.goto('/app/settings/security')
+  await expect(page).toHaveURL(`${origin}/login`)
+})
