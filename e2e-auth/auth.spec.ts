@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test('real FastAPI registration, SSR, isolation, repeated and interrupted flows, login and revocation', async ({ page, browser }) => {
   const password = 'Isolated-test-password-927!'
-  const email = `owner-${Date.now()}@example.test`
+  const email = `owner-${Date.now()}@example.com`
   const origin = 'http://127.0.0.1:3000'
   // Every auth response comes from FastAPI. One test delays forwarding, never mocks a response.
   await page.goto('/app')
@@ -16,7 +16,7 @@ test('real FastAPI registration, SSR, isolation, repeated and interrupted flows,
   await page.getByLabel('Full name').fill('Alpha Owner')
   await page.getByLabel('Organization', { exact: true }).fill('Alpha Workspace')
   await page.getByLabel('Work email').fill(email)
-  await page.getByLabel('Password', { exact: true }).fill(password)
+  await page.getByLabel(/^Password/).fill(password)
   let submissions = 0
   page.on('request', request => { if (request.url().endsWith('/auth/register') && request.method() === 'POST') submissions++ })
   await page.locator('form').evaluate((form: HTMLFormElement) => { form.requestSubmit(); form.requestSubmit() })
@@ -67,10 +67,10 @@ test('real FastAPI registration, SSR, isolation, repeated and interrupted flows,
   await page.goto('/app')
   await expect(page).toHaveURL(/\/login$/)
   await page.getByLabel('Work email').fill(email)
-  await page.getByLabel('Password', { exact: true }).fill('Wrong-password-927!')
+  await page.getByLabel(/^Password/).fill('Wrong-password-927!')
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(page.getByRole('alert').filter({ hasText: /credential|password|email/i })).toBeVisible()
-  await page.getByLabel('Password', { exact: true }).fill(password)
+  await page.getByLabel(/^Password/).fill(password)
   // Hold a real request before forwarding, navigate away, then let FastAPI finish it.
   let release!: () => void
   let intercepted!: () => void

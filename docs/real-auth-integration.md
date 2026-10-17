@@ -20,7 +20,7 @@ The same-host `/api/v1` proxy is an opt-in route allowlist for registration, log
 
 ## Unsupported features are explicitly gated
 
-Candidate mode shows only the authenticated overview and sign-out. It hides links to documents, workflows, users, audit and security/session-management pages, redirects direct nested workspace navigation to the overview, and rejects unsupported API routes. Existing default Node behavior stays unchanged when `VIREXA_AUTH_CANDIDATE` is unset: continue using the existing absolute `NEXT_PUBLIC_API_URL` for that runtime. Do not mix Python session cookies with Node route handlers against different schemas.
+Candidate mode shows only the authenticated overview and sign-out. It hides links to documents, workflows, users, audit and security/session-management pages, redirects direct nested workspace navigation to the overview, and rejects unsupported API routes. Existing default Node API selection stays unchanged when `VIREXA_AUTH_CANDIDATE` is unset: continue using the existing absolute `NEXT_PUBLIC_API_URL` for that runtime. Do not mix Python session cookies with Node route handlers against different schemas. SSR hardening also applies to default Node requests: a ten-second deadline, rejected redirects and sanitized fail-closed error handling.
 
 ## CI and evidence boundaries
 
@@ -32,4 +32,4 @@ Local unit checks cover proxy allowlisting, forwarding, missing Origin, body lim
 
 ## Release limitations
 
-This preview is HTTP loopback development, not same-host production HTTPS verification. Secure cookies, TLS termination, production Origin allowlists and trusted-proxy/client-IP configuration need deployment-specific testing. The current backend limiter sees the proxy host and is process-local, so the preview is not a multi-user production topology. Full Python route parity, migration reconciliation, durable audit logging, session lifecycle controls and PostgreSQL RLS remain separate blockers documented in PR #70. The UI gate is an honest capability boundary, never an authorization boundary.
+This preview is HTTP loopback development, not same-host production HTTPS verification. Secure cookies, TLS termination, production Origin allowlists and trusted-proxy/client-IP configuration need deployment-specific testing. The current backend limiter sees the proxy host and is process-local, so the preview is not a multi-user production topology. Full Python route parity, migration reconciliation, durable audit logging, session lifecycle controls and PostgreSQL RLS remain separate blockers documented in PR #70. The UI gate is an honest capability boundary, never an authorization boundary. Backend source is pinned, but Python dependencies still resolve from version ranges; a reviewed lock or constraints file and pinned infrastructure images remain necessary for fully reproducible dependency execution.
