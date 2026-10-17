@@ -11,14 +11,14 @@ import { VirexaMark } from '@/components/brand/virexa-mark'
 
 const icons = { dashboard: LayoutDashboard, documents: FileText, workflows: Workflow, users: Users, audit: ShieldCheck, settings: Settings }
 
-export function WorkspaceFrame({ session, children, authOnly = false }: { session: AuthSession; children: ReactNode; authOnly?: boolean }) {
+export function WorkspaceFrame({ session, children, authOnly = false, documentIntake = false }: { session: AuthSession; children: ReactNode; authOnly?: boolean; documentIntake?: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const busy = useRef(false)
-  const navigation = NAVIGATION.filter((item) => item.roles.includes(session.user.role) && (!authOnly || item.href === '/app'))
+  const navigation = NAVIGATION.filter((item) => item.roles.includes(session.user.role) && (!authOnly || item.href === '/app' || (documentIntake && item.href === '/app/documents')))
   async function logout() {
     if (busy.current) return
     busy.current = true

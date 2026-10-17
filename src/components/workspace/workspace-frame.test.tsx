@@ -43,3 +43,8 @@ it('gates all unported features in the isolated auth candidate even for admins',
   }
   expect(screen.getByRole('button', { name: 'Sign out' })).toBeTruthy()
 })
+it('enables only documents with explicit intake capability', () => {
+  render(<WorkspaceFrame authOnly documentIntake session={{ ...session, user: { ...session.user, role: 'admin' } }}>Intake</WorkspaceFrame>)
+  expect(screen.getByRole('link', { name: 'Documents' })).toBeTruthy()
+  for (const name of ['Workflows', 'Users & Access', 'Audit Log', 'Security']) expect(screen.queryByRole('link', { name })).toBeNull()
+})
