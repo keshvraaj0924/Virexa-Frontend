@@ -1,0 +1,82 @@
+name: Real session controls integration
+on:
+  pull_request:
+  push:
+    branches: ['feat/python-session-security']
+permissions:
+  contents: read
+jobs:
+  real-sessions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: virexa_test
+          POSTGRES_PASSWORD: isolated-ci-only
+          POSTGRES_DB: virexa_auth_browser
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U virexa_test -d virexa_auth_browser"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql+asyncpg://virexa_test:isolated-ci-only@127.0.0.1:5432/virexa_auth_browser
+      ALLOWED_ORIGINS: http://127.0.0.1:3000
+      VIREXA_AUTH_CANDIDATE: '1'
+      VIREXA_DOCUMENT_INTAKE: '1'
+      VIREXA_SESSION_CONTROLS: '1'
+      PUBLIC_API_ORIGIN: http://127.0.0.1:3000
+      DOCUMENT_STORAGE_ROOT: /tmp/virexa-private-quarantine
+      AUTH_API_ORIGIN: http://127.0.0.1:4000
+      NEXT_PUBLIC_API_URL: /api/v1
+    steps:
+      - name: Checkout exact frontend head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Checkout reviewed public backend commit
+        uses: actions/checkout@v4
+        with:
+          repository: keshvraaj0924/Virexa-backend
+          ref: f68d4776cabf3cb76309f7a9c34febe437de1e50
+          path: .auth-backend
+          persist-credentials: false
+      - name: Verify immutable backend pin
+        run: test "$(git -C .auth-backend rev-parse HEAD)" = 'f68d4776cabf3cb76309f7a9c34febe437de1e50'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install backend and migrate isolated PostgreSQL 16
+        working-directory: .auth-backend
+        run: |
+          install -d -m 700 /tmp/virexa-private-quarantine
+          python -m pip install -e '.[dev]'
+          python -m alembic upgrade head
+          python -m uvicorn app.main:create_app --factory --host 127.0.0.1 --port 4000 --no-access-log > /tmp/virexa-auth-service.log 2>&1 &
+      - name: Wait for actual database readiness
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4000/ready; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Real browser, session proxy, FastAPI and PostgreSQL session controls
+        run: npx playwright test --config playwright.sessions.config.ts
+
+      - name: Save visual review screenshots (no traces or cookies)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: session-controls-review
+          path: test-results/*.png
+          retention-days: 7

@@ -54,7 +54,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const authApi = {
   session: () => request<ApiSuccess<AuthSession>>('/auth/session'),
   me: () => request<ApiSuccess<AuthSession>>('/me'),
-  activeSessions: () => request<ApiSuccess<ActiveSession[]>>('/auth/sessions', { cache: 'no-store' }),
+  activeSessions: (cursor?: string) => request<ApiSuccess<ActiveSession[]>>(`/auth/sessions?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`, { cache: 'no-store' }),
   login: (input: LoginRequest) => request<ApiSuccess<AuthSession>>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(input),

@@ -13,7 +13,12 @@ export async function proxyAuth(request: Request, segments: string[]) {
   const allowed = request.method === 'GET'
     ? ['auth/session', 'me'].includes(path) || /^organizations\/[0-9a-f-]{36}$/i.test(path)
     : request.method === 'POST' && ['auth/login', 'auth/register', 'auth/logout'].includes(path)
-  if (!allowed) return failure(404, 'FEATURE_UNAVAILABLE', 'This endpoint is unavailable in the authentication preview.')
+  const sessionsAllowed = process.env.VIREXA_SESSION_CONTROLS === '1' && (
+    (request.method === 'GET' && path === 'auth/sessions') ||
+    (request.method === 'POST' && path === 'auth/sessions/revoke-others') ||
+    (request.method === 'DELETE' && /^auth\/sessions\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(path))
+  )
+  if (!allowed && !sessionsAllowed) return failure(404, 'FEATURE_UNAVAILABLE', 'This endpoint is unavailable in the authentication preview.')
   const headers = new Headers({ Accept: 'application/json' })
   // Forward the original Origin, never synthesize trust from Host or forwarded headers.
   for (const name of ['origin', 'cookie', 'content-type', 'x-request-id']) {
@@ -37,7 +42,15 @@ export async function proxyAuth(request: Request, segments: string[]) {
     for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.length }
   }
   try {
-    const response = await fetch(new URL(`/api/v1/${path}`, upstream), { method: request.method, headers, body: body as BodyInit | undefined, redirect: 'manual', cache: 'no-store', signal: AbortSignal.timeout(10000) })
+    const target = new URL(`/api/v1/${path}`, upstream)
+    if (path === 'auth/sessions' && request.method === 'GET') {
+      const query = new URL(request.url).searchParams
+      for (const key of ['limit', 'cursor']) {
+        const value = query.get(key)
+        if (value !== null) target.searchParams.set(key, value)
+      }
+    }
+    const response = await fetch(target, { method: request.method, headers, body: body as BodyInit | undefined, redirect: 'manual', cache: 'no-store', signal: AbortSignal.timeout(10000) })
     // Never follow redirects with credentials or leak upstream redirect destinations.
     if (response.status >= 300 && response.status < 400) return failure(502, 'UPSTREAM_ERROR', 'Authentication service returned an invalid response.')
     const outgoing = new Headers(noStore)

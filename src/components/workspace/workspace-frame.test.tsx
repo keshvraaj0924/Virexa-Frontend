@@ -48,3 +48,8 @@ it('enables only documents with explicit intake capability', () => {
   expect(screen.getByRole('link', { name: 'Documents' })).toBeTruthy()
   for (const name of ['Workflows', 'Users & Access', 'Audit Log', 'Security']) expect(screen.queryByRole('link', { name })).toBeNull()
 })
+it('enables Security only with explicit session capability', () => {
+  render(<WorkspaceFrame authOnly sessionControls session={{ ...session, user: { ...session.user, role: 'admin' } }}>Sessions</WorkspaceFrame>)
+  expect(screen.getByRole('link', { name: 'Security' })).toBeTruthy()
+  for (const name of ['Documents', 'Workflows', 'Users & Access', 'Audit Log']) expect(screen.queryByRole('link', { name })).toBeNull()
+})
