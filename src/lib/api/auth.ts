@@ -42,9 +42,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       && parsedRetryAfterSeconds >= 0
       ? parsedRetryAfterSeconds
       : undefined
-    throw new ApiRequestError(payload?.error.message ?? 'Request failed', {
-      code: payload?.error.code ?? 'UNKNOWN_ERROR',
-      requestId: payload?.error.requestId,
+    throw new ApiRequestError(payload?.error?.message ?? 'Request failed', {
+      code: payload?.error?.code ?? 'UNKNOWN_ERROR',
+      requestId: payload?.error?.requestId,
       retryAfterSeconds,
     })
   }
@@ -73,3 +73,4 @@ export const authApi = {
 
 export type AuthApiResponse = ApiSuccess<AuthSession>
 export type AuthRequestMeta = ApiMeta
+

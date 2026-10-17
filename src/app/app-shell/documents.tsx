@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { DocumentRecord, DocumentStatus } from '@/contracts/documents'
 import type { DocumentExtraction, ExtractionFieldValue } from '@/contracts/extractions'
 import type { UserRole } from '@/contracts/auth'
@@ -58,16 +58,23 @@ export default function DocumentsPanel({ role }: DocumentsPanelProps) {
 
   const metrics = useMemo(() => ({ visible: documents.length, processing: documents.filter((item) => item.status === 'processing').length, review: documents.filter((item) => item.status === 'review_required').length, failed: documents.filter((item) => item.status === 'failed').length }), [documents])
 
-  async function load(cursor?: string, append = false) {
+  const load = useCallback(async (cursor?: string, append = false) => {
     const requestSequence = ++requestSequenceRef.current
-    append ? setLoadingMore(true) : setLoading(true); setError(null)
+    if (append) setLoadingMore(true)
+    else setLoading(true)
+    setError(null)
     try {
       const response = await documentsApi.list({ status: status || undefined, cursor, limit: 24 })
       if (requestSequence !== requestSequenceRef.current) return
       setDocuments((current) => append ? [...current, ...response.data.items] : response.data.items); setNextCursor(response.data.nextCursor)
     } catch (cause: unknown) { if (requestSequence === requestSequenceRef.current) setError(cause instanceof Error ? cause.message : 'Unable to load documents.') }
-    finally { if (requestSequence === requestSequenceRef.current) append ? setLoadingMore(false) : setLoading(false) }
-  }
+    finally {
+      if (requestSequence === requestSequenceRef.current) {
+        if (append) setLoadingMore(false)
+        else setLoading(false)
+      }
+    }
+  }, [status])
 
   async function inspect(document: DocumentRecord) {
     const requestSequence = ++extractionSequenceRef.current
@@ -99,7 +106,7 @@ export default function DocumentsPanel({ role }: DocumentsPanelProps) {
     finally { setUploading(false); if (fileInputRef.current) fileInputRef.current.value = '' }
   }
 
-  useEffect(() => { if (canRead) void load() }, [status, canRead])
+  useEffect(() => { if (canRead) void load() }, [load, canRead])
 
   if (!canRead) return <section className="workflow-state"><div><strong>Documents unavailable</strong><p>Your role does not include document access.</p></div></section>
   if (loading) return <section className="workflow-state"><span className="audit-loader" aria-hidden="true"/><div><strong>Loading secure inbox</strong><p>Retrieving organization-scoped documents from the live API.</p></div></section>
@@ -132,3 +139,4 @@ export default function DocumentsPanel({ role }: DocumentsPanelProps) {
     </section>}
   </>
 }
+

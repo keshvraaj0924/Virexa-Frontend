@@ -1,0 +1,37 @@
+// @vitest-environment jsdom
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { WorkspaceFrame } from './workspace-frame'
+import type { AuthSession } from '@/contracts/auth'
+import { authApi } from '@/lib/api/auth'
+const router = vi.hoisted(() => ({ replace: vi.fn(), refresh: vi.fn() }))
+vi.mock('next/navigation', () => ({ useRouter: () => router, usePathname: () => '/app/documents' }))
+vi.mock('@/lib/api/auth', () => ({ authApi: { logout: vi.fn() } }))
+const session: AuthSession = { user: { id: 'u', displayName: 'Alex', email: 'a@example.com', organizationId: 'o', organizationName: 'Acme', role: 'viewer' }, expiresAt: '2026-12-01T00:00:00Z' }
+afterEach(cleanup)
+beforeEach(() => vi.clearAllMocks())
+it('keeps navigation role-aware and only links implemented routes', () => {
+  render(<WorkspaceFrame session={session}>Content</WorkspaceFrame>)
+  expect(screen.getByRole('link', { name: 'Documents' }).getAttribute('aria-current')).toBe('page')
+  expect(screen.queryByRole('link', { name: 'Workflows' })).toBeNull()
+  expect(screen.queryByRole('link', { name: 'Analytics' })).toBeNull()
+  expect(screen.queryByRole('link', { name: 'Users & Access' })).toBeNull()
+  expect(screen.getByRole('link', { name: 'Security' }).getAttribute('href')).toBe('/app/settings/security')
+})
+it('provides an expandable mobile navigation', () => {
+  render(<WorkspaceFrame session={session}>Content</WorkspaceFrame>)
+  fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
+  expect(screen.getByRole('button', { name: 'Close navigation' }).getAttribute('aria-expanded')).toBe('true')
+  screen.getByRole('link', { name: 'Documents' }).addEventListener('click', (event) => event.preventDefault())
+  fireEvent.click(screen.getByRole('link', { name: 'Documents' }))
+  expect(screen.getByRole('button', { name: 'Open navigation' }).getAttribute('aria-expanded')).toBe('false')
+})
+it('retains the workspace after failed logout and allows retry', async () => {
+  vi.mocked(authApi.logout).mockRejectedValueOnce(new Error('Offline')).mockResolvedValueOnce({} as never)
+  render(<WorkspaceFrame session={session}>Content</WorkspaceFrame>)
+  fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+  await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('Sign out failed'))
+  expect(router.replace).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+  await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/login'))
+})

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, BadgeCheck, LockKeyhole, Workflow } from 'lucide-react'
 import { VirexaMark } from '@/components/brand/virexa-mark'
-import { AmbientWave } from '@/components/marketing/ambient-wave'
+import { DocumentOrbit } from './document-orbit'
 
 interface AuthFrameProps {
   heading: string
@@ -28,18 +28,18 @@ export function AuthFrame({ heading, description, variant, children }: AuthFrame
             <p className="vx-auth-intro">{description}</p>
             {children}
           </div>
-          <p className="vx-auth-trust"><LockKeyhole size={15} /> Secure, organization-scoped access</p>
+          <p className="vx-auth-trust"><LockKeyhole size={15} /> Your team. Your operational workspace.</p>
         </div>
       </section>
       <aside className="vx-auth-art" aria-label="Virexa platform introduction">
-        <AmbientWave />
+        <DocumentOrbit />
         <div className="vx-auth-art-content">
-          <div className="vx-auth-art-label">INTELLIGENT FINANCE OPERATIONS</div>
-          <h2>{variant === 'login' ? 'Automation that moves your business forward.' : 'Move your team beyond manual work.'}</h2>
-          <p>Bring invoice intake, validation and approvals into a workspace designed for clarity and control.</p>
+          <div className="vx-auth-art-label">DOCUMENTS TO DECISIONS</div>
+          <h2>{variant === 'login' ? 'Less manual work. More forward motion.' : 'Move your team beyond manual work.'}</h2>
+          <p>Bring document intake, extraction and review into one connected flow. Keep your team in control of what happens next.</p>
           <div className="vx-auth-benefits">
             <span><Workflow size={17} /> Governed workflows</span>
-            <span><BadgeCheck size={17} /> Human-led approval</span>
+            <span><BadgeCheck size={17} /> Human-led review</span>
             <span><LockKeyhole size={17} /> Team-aware access</span>
           </div>
         </div>
@@ -48,3 +48,4 @@ export function AuthFrame({ heading, description, variant, children }: AuthFrame
     </main>
   )
 }
+
