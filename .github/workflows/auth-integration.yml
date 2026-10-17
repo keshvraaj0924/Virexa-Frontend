@@ -67,3 +67,11 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Real browser, proxy, FastAPI and PostgreSQL authentication
         run: npx playwright test --config playwright.auth.config.ts
+
+      - name: Save visual review screenshots (no traces or cookies)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-visual-review
+          path: test-results/*.png
+          retention-days: 7

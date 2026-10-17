@@ -8,6 +8,7 @@ import './auth.css'
 import './premium-auth.css'
 import './app-shell.css'
 import './premium-workspace.css'
+import './refined-journey.css'
 
 export const metadata: Metadata = {
   title: 'Virexa — Beyond Automation',
