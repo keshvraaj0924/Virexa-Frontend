@@ -35,3 +35,11 @@ it('retains the workspace after failed logout and allows retry', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
   await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/login'))
 })
+it('gates all unported features in the isolated auth candidate even for admins', () => {
+  render(<WorkspaceFrame authOnly session={{ ...session, user: { ...session.user, role: 'admin' } }}>Preview</WorkspaceFrame>)
+  expect(screen.getByRole('link', { name: 'Dashboard' })).toBeTruthy()
+  for (const name of ['Documents', 'Workflows', 'Users & Access', 'Audit Log', 'Security']) {
+    expect(screen.queryByRole('link', { name })).toBeNull()
+  }
+  expect(screen.getByRole('button', { name: 'Sign out' })).toBeTruthy()
+})
