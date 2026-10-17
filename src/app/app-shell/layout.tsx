@@ -6,6 +6,6 @@ export default async function AppShellLayout({ children }: Readonly<{ children: 
   const session = await getServerSession()
   if (!session) redirect('/login')
 
-  return <WorkspaceFrame session={session} authOnly={process.env.VIREXA_AUTH_CANDIDATE === '1'} documentIntake={process.env.VIREXA_DOCUMENT_INTAKE === '1'}>{children}</WorkspaceFrame>
+  return <WorkspaceFrame session={session} authOnly={process.env.VIREXA_AUTH_CANDIDATE === '1'} sessionControls={process.env.VIREXA_SESSION_CONTROLS === '1'} documentIntake={process.env.VIREXA_DOCUMENT_INTAKE === '1'}>{children}</WorkspaceFrame>
 }
 

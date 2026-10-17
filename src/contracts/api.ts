@@ -1,6 +1,7 @@
 import type { ApiErrorBody } from './auth'
 
 export interface ApiMeta {
+  pagination?: { nextCursor: string | null }
   requestId: string
   timestamp: string
 }
@@ -16,3 +17,4 @@ export interface ApiFailure {
 }
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiFailure
+
