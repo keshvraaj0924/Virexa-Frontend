@@ -19,6 +19,7 @@ export interface DocumentRecord {
   sizeBytes: number
   checksumSha256: string
   status: DocumentStatus
+  scanStatus?: 'awaiting_upload' | 'pending_scan'
   failureCode: string | null
   receivedAt: string
   updatedAt: string
@@ -92,3 +93,4 @@ export const DOCUMENTS_API_V1 = {
   completeUpload: (documentId: string, attemptId: string) =>
     `/api/v1/documents/${encodeURIComponent(documentId)}/uploads/${encodeURIComponent(attemptId)}/complete`,
 } as const
+
