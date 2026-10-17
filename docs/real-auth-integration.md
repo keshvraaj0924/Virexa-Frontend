@@ -14,7 +14,7 @@ AUTH_API_ORIGIN=http://127.0.0.1:4000
 NEXT_PUBLIC_API_URL=/api/v1
 ```
 
-Then `npm ci`, `npm run build`, `npx playwright install chromium`, and `npx playwright test --config playwright.auth.config.ts`. The test starts Next.js at `http://127.0.0.1:3000`. Use this exact origin, rather than localhost, to match trusted Origin checks. The backend must already be running with a freshly migrated test database.
+Then `npm ci`, `npm run build`, `npx playwright install chromium`, and `npx playwright test --config playwright.auth.config.ts`. The test starts Next.js at `http://127.0.0.1:3000`. Use this exact origin, rather than localhost, to match trusted Origin checks. Feature gates use server route-layout redirects with relative destinations, preserving the browser hostname. Middleware redirects are intentionally avoided: Next can normalize loopback hosts to localhost and lose host-only cookies. The backend must already be running with a freshly migrated test database.
 
 The same-host `/api/v1` proxy is an opt-in route allowlist for registration, login, session, logout, `/me`, and tenant-scoped organization reads. It preserves original Origin and host-only Set-Cookie, rejects redirects and large request bodies, drops client-supplied forwarding headers, and disables caching. Browser requests use relative `/api/v1`; server-rendered session checks use the server-only backend origin with incoming cookies. No bearer tokens, browser-stored sessions, mocks or manufactured application data are involved.
 

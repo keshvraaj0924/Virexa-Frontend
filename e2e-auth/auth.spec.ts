@@ -64,6 +64,8 @@ test('real FastAPI registration, SSR, isolation, repeated and interrupted flows,
   expect((await stale.request.get('/api/v1/auth/session')).status()).toBe(401)
   await stale.close()
   await page.goBack()
+  await expect(page).toHaveURL(/\/login$/)
+  await expect(page.getByText(email)).toHaveCount(0)
   await page.goto('/app')
   await expect(page).toHaveURL(/\/login$/)
   await page.getByLabel('Work email').fill(email)
