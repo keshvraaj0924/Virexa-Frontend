@@ -1,0 +1,56 @@
+import { expect, test } from '@playwright/test'
+
+test('desktop login renders, reveals password and keeps real failure visible', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.route('**/api/v1/auth/login', (route) => route.fulfill({ status: route.request().method() === 'OPTIONS' ? 204 : 401, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': 'http://127.0.0.1:3000', 'Access-Control-Allow-Credentials': 'true', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Request-ID' }, body: JSON.stringify({ error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' } }) }))
+  await page.goto('/login')
+  await expect(page.getByRole('heading', { name: 'Welcome back.' })).toBeVisible()
+  await page.screenshot({ path: 'test-results/login-desktop.png', fullPage: true })
+  await page.getByLabel('Work email').fill('alex@example.com')
+  await page.getByLabel('Password', { exact: true }).fill('example password')
+  await page.getByRole('button', { name: 'Show password' }).click()
+  await expect(page.getByLabel('Password', { exact: true })).toHaveAttribute('type', 'text')
+  await page.getByRole('button', { name: 'Hide password' }).click()
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click()
+  await expect(page.getByRole('alert')).toHaveText('Invalid email or password.')
+  await expect(page).toHaveURL(/\/login$/)
+  await page.screenshot({ path: 'test-results/login-error.png', fullPage: true })
+})
+
+test('mobile registration is usable without decorative canvas', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/register')
+  await expect(page.getByRole('heading', { name: 'Create your workspace.' })).toBeVisible()
+  await expect(page.getByLabel('Full name')).toBeVisible()
+  await expect(page.getByLabel('Organization')).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await expect(page.locator('.vx-auth-art')).toBeHidden()
+  await page.screenshot({ path: 'test-results/register-mobile.png', fullPage: true })
+  await page.getByRole('link', { name: 'Sign in', exact: true }).click()
+  await expect(page).toHaveURL(/\/login$/)
+  await page.goBack()
+  await expect(page).toHaveURL(/\/register$/)
+})
+
+test('desktop reduced motion retains the CSS fallback and accessible form', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/register')
+  await expect(page.locator('.vx-document-orbit canvas')).toBeHidden()
+  await expect(page.getByRole('button', { name: 'Create workspace' })).toBeVisible()
+  await page.screenshot({ path: 'test-results/register-desktop.png', fullPage: true })
+})
+
+
+test('original product guide opens contextual tips and supports Escape', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.goto('/login')
+  await page.getByRole('button', { name: 'Open product guide' }).click()
+  await expect(page.getByRole('region', { name: 'Let’s get you back in.' })).toBeVisible()
+  await page.screenshot({ path: 'test-results/login-product-guide.png', fullPage: true })
+  await page.getByRole('button', { name: 'Next tip' }).click()
+  await expect(page.getByText('The eye button lets you check your password before signing in.')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('button', { name: 'Open product guide' })).toBeFocused()
+})

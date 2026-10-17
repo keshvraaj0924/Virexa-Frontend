@@ -8,7 +8,7 @@ export default async function AuditPage() {
   if (!context.permissions.includes('audit:read')) redirect('/app')
 
   return (
-    <main className="app-layout">
+    <main className="workspace-page">
       <section className="app-content">
         <header className="app-header">
           <div><span className="eyebrow">GOVERNANCE</span><h1>Audit Log</h1></div>
@@ -19,3 +19,4 @@ export default async function AuditPage() {
     </main>
   )
 }
+

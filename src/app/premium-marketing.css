@@ -56,7 +56,7 @@
 @media(prefers-reduced-motion:reduce){.vx-landing *{transition:none!important;animation:none!important}}
 
 .vx-platform-section,.vx-process-section{max-width:1500px;padding:110px 6vw;margin:auto}
-.vx-section-intro{display:flex;justify-content:space-between;align-items:end;gap:45px}
+.vx-section-intro{display:flex;justify-content:space-between;align-items:flex-end;gap:45px}
 .vx-section-kicker{display:inline-block;color:#267bdc;font-size:10px;font-weight:850;letter-spacing:.16em}
 .vx-section-intro h2,.vx-process-copy h2{margin:18px 0 0;font-size:clamp(40px,4.2vw,66px);line-height:1.05;letter-spacing:-.055em}
 .vx-section-intro h2 span,.vx-process-copy h2 span{color:#418fde}
@@ -128,3 +128,4 @@
 .vx-security-banner{padding:50px 6vw}
 .vx-site-footer{flex-wrap:wrap}
 }
+

@@ -7,7 +7,7 @@ export default async function WorkflowsPage() {
   if (!session) redirect('/login')
 
   return (
-    <main className="app-layout">
+    <main className="workspace-page">
       <section className="app-content">
         <header className="app-header"><div><span className="eyebrow">OPERATIONS</span><h1>Workflows</h1></div><span className="workspace-pill">{session.user.organizationName}</span></header>
         <WorkflowPanel role={session.user.role} />
@@ -15,3 +15,4 @@ export default async function WorkflowsPage() {
     </main>
   )
 }
+

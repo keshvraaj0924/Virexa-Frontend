@@ -1,8 +1,10 @@
+import { WorkspaceFrame } from '@/components/workspace/workspace-frame'
 import { redirect } from 'next/navigation'
 import { getServerSession } from '@/lib/auth/server'
 
 export default async function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await getServerSession()
   if (!session) redirect('/login')
-  return children
+  return <WorkspaceFrame session={session}>{children}</WorkspaceFrame>
 }
+

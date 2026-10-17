@@ -7,7 +7,7 @@ export default async function DocumentsPage() {
   if (!session) redirect('/login')
 
   return (
-    <main className="app-layout">
+    <main className="workspace-page">
       <section className="app-content">
         <header className="app-header">
           <div><span className="eyebrow">OPERATIONS</span><h1>Inbox & Documents</h1></div>
@@ -18,3 +18,4 @@ export default async function DocumentsPage() {
     </main>
   )
 }
+
