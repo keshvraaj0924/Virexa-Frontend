@@ -54,6 +54,7 @@ export function IntakePanel({ role }: { role: UserRole }) {
       const document = await sendIntake(file, progress.current, controller.signal, text => { if (mounted.current && !controller.signal.aborted) setMessage(text) })
       if (!mounted.current || controller.signal.aborted) return
       setMessage(document.scanStatus === 'pending_scan' ? 'Received in private quarantine. Pending scan.' : 'Receipt requires confirmation. Refresh the document list.')
+      progress.current = { key: '' }
       setFile(null)
       if (input.current) input.current.value = ''
       await refresh()

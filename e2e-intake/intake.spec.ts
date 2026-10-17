@@ -20,6 +20,7 @@ test('real bytes reach quarantine with safe repeated, interrupted, retry and ten
   await page.getByRole('button', { name: 'Upload to quarantine' }).evaluate((button: HTMLButtonElement) => { button.click(); button.click() })
   await expect(page.getByRole('region', { name: 'Upload a document' }).getByRole('status')).toContainText('Received in private quarantine. Pending scan.')
   expect(creations).toBe(1)
+  await expect(page.getByRole('button', { name: 'Upload to quarantine' })).toBeDisabled()
   const list = await page.request.get('/api/v1/documents?limit=50')
   expect(list.status()).toBe(200)
   const record = (await list.json()).data.items[0]
