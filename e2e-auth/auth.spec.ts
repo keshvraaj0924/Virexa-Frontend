@@ -20,7 +20,7 @@ test('real FastAPI registration, SSR, isolation, repeated and interrupted flows,
   let submissions = 0
   page.on('request', request => { if (request.url().endsWith('/auth/register') && request.method() === 'POST') submissions++ })
   await page.locator('form').evaluate((form: HTMLFormElement) => { form.requestSubmit(); form.requestSubmit() })
-  await expect(page).toHaveURL(/\/app$/)
+  await expect(page).toHaveURL(`${origin}/app`)
   expect(submissions).toBe(1)
   await expect(page.getByRole('heading', { name: 'Authentication preview' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Documents', exact: true })).toHaveCount(0)
@@ -42,7 +42,7 @@ test('real FastAPI registration, SSR, isolation, repeated and interrupted flows,
   expect((await page.request.get(`/api/v1/organizations/${session.user.organizationId}`)).status()).toBe(200)
   expect((await page.request.get('/api/v1/workflows')).status()).toBe(404)
   await page.goto('/app/documents')
-  await expect(page).toHaveURL(/\/app$/)
+  await expect(page).toHaveURL(`${origin}/app`)
 
   const other = await browser.newContext({ baseURL: origin })
   const second = await other.request.post('/api/v1/auth/register', { headers: { Origin: origin }, data: { displayName: 'Beta Owner', email: `beta-${email}`, password, organizationName: 'Beta Workspace' } })
@@ -90,7 +90,7 @@ test('real FastAPI registration, SSR, isolation, repeated and interrupted flows,
   await expect(page.getByRole('heading', { name: 'Create your workspace.' })).toBeVisible()
   await expect(page).toHaveURL(/\/register$/)
   await page.goto('/app')
-  await expect(page).toHaveURL(/\/app$/)
+  await expect(page).toHaveURL(`${origin}/app`)
   await page.reload()
   await expect(page.getByText(email)).toBeVisible()
   await page.getByRole('button', { name: 'Sign out', exact: true }).click()
