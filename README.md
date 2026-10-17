@@ -52,3 +52,7 @@ Copy `.env.example` to `.env.local` and point `NEXT_PUBLIC_API_URL` at the real 
 ### Original product guide
 
 The code-native orbital document character is Virexa-specific artwork, informed by the supplied visual direction without reusing the reference character. The guide is contextual, dismissible, keyboard accessible and reduced-motion aware. It provides built-in tips only; it does not represent a connected chat model, access documents, or execute agent actions. Decorative character motion stops after its short entrance.
+
+### Real FastAPI authentication preview
+
+An explicit opt-in [integration preview](docs/real-auth-integration.md) now connects the browser and server-rendered session checks to the pinned Python candidate through a same-host route allowlist. It gates unported workspace features while preserving the existing default Node backend configuration. See that guide for isolated PostgreSQL setup, exact commit pins, browser verification and release limitations.
