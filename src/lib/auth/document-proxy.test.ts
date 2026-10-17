@@ -107,3 +107,37 @@ it('enforces an upstream deadline and cleans up pending reads', async () => {
     expect(vi.getTimerCount()).toBe(0)
   } finally { vi.useRealTimers() }
 })
+
+it('keeps the exact method and path allowlist after policy extraction', async () => {
+  const fetch = vi.fn().mockImplementation(() => Promise.resolve(Response.json({ data: {} })))
+  vi.stubGlobal('fetch', fetch)
+  const routes = [
+    { path: ['documents'], methods: ['GET', 'POST'] },
+    { path: ['documents', id], methods: ['GET'] },
+    { path: ['documents', id, 'uploads'], methods: ['POST'] },
+    { path: ['documents', id, 'uploads', id, 'complete'], methods: ['POST'] },
+    { path: content, methods: ['PUT'] },
+  ]
+  for (const { path, methods } of routes) {
+    for (const method of ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']) {
+      const response = await proxyDocuments(request(path, method), path)
+      expect(response.status).toBe(methods.includes(method) ? 200 : 404)
+    }
+  }
+  expect(fetch).toHaveBeenCalledTimes(6)
+})
+
+it('preserves empty and multi-chunk upstream responses', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockImplementationOnce(() => new Response(null)).mockImplementationOnce(() => {
+    return new Response(new ReadableStream({
+      start(controller) {
+        const encoder = new TextEncoder()
+        controller.enqueue(encoder.encode('{"data":'))
+        controller.enqueue(encoder.encode('[]}'))
+        controller.close()
+      },
+    }))
+  }))
+  expect(await (await proxyDocuments(request(['documents']), ['documents'])).text()).toBe('')
+  expect(await (await proxyDocuments(request(['documents']), ['documents'])).json()).toEqual({ data: [] })
+})
