@@ -45,15 +45,19 @@ test('real bytes reach quarantine with safe repeated, interrupted, retry and ten
   expect((await page.request.post('/api/v1/documents', { data: {} })).status()).toBe(403)
   expect((await page.request.post('/api/v1/documents', { headers: { Origin: 'https://evil.example', 'X-Forwarded-Host': '127.0.0.1:3000' }, data: {} })).status()).toBe(403)
 
+  // The backend rejects duplicate content even if the name changes.
+  await page.getByLabel('Choose a document').setInputFiles({ ...fixture, name: 'duplicate.pdf' })
+  await page.getByRole('button', { name: 'Upload to quarantine' }).click()
+  await expect(page.getByRole('region', { name: 'Upload a document' }).getByRole('alert')).toContainText('already been registered')
+
   // Cancel before forwarding content, then retry the same document and attempt.
   let release!: () => void
-  let started!: () => void
+  let intercepted = false
   const held = new Promise<void>(resolve => { release = resolve })
-  const intercepted = new Promise<void>(resolve => { started = resolve })
-  await page.route('**/api/v1/documents/*/uploads/*/content', async route => { started(); await held; await route.continue().catch(() => {}) }, { times: 1 })
-  await page.getByLabel('Choose a document').setInputFiles({ ...fixture, name: 'cancel-retry.pdf' })
+  await page.route('**/api/v1/documents/*/uploads/*/content', async route => { intercepted = true; await held; await route.continue().catch(() => {}) }, { times: 1 })
+  await page.getByLabel('Choose a document').setInputFiles({ ...fixture, name: 'cancel-retry.pdf', buffer: Buffer.concat([pdf, Buffer.from('% unique cancellation fixture\n')]) })
   await page.getByRole('button', { name: 'Upload to quarantine' }).click()
-  await intercepted
+  await expect.poll(() => intercepted, { message: 'Content PUT must reach the browser interceptor' }).toBe(true)
   await page.getByRole('button', { name: 'Cancel upload' }).click()
   release()
   await expect(page.getByRole('region', { name: 'Upload a document' }).getByRole('alert')).toContainText('Upload stopped')
@@ -69,7 +73,7 @@ test('real bytes reach quarantine with safe repeated, interrupted, retry and ten
     expect(response.status()).toBe(200)
     await route.abort('failed')
   }, { times: 1 })
-  await page.getByLabel('Choose a document').setInputFiles({ ...fixture, name: 'lost-confirmation.pdf' })
+  await page.getByLabel('Choose a document').setInputFiles({ ...fixture, name: 'lost-confirmation.pdf', buffer: Buffer.concat([pdf, Buffer.from('% unique confirmation fixture\n')]) })
   await page.getByRole('button', { name: 'Upload to quarantine' }).click()
   await expect(page.getByRole('region', { name: 'Upload a document' }).getByRole('alert')).toContainText('could not be confirmed')
   const beforeRecovery = creations

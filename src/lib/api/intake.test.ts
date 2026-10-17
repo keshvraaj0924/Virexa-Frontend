@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { sendIntake, validateIntakeFile, type IntakeProgress } from './intake'
-import { apiRequest } from './client'
+import { sendIntake, validateIntakeFile, intakeError, type IntakeProgress } from './intake'
+import { ApiError, apiRequest } from './client'
 vi.mock('./client', async importOriginal => ({ ...await importOriginal<object>(), apiRequest: vi.fn() }))
 const api = vi.mocked(apiRequest)
 const document = { id: 'doc', scanStatus: 'awaiting_upload' }
@@ -42,4 +42,17 @@ describe('quarantine upload lifecycle', () => {
     await expect(sendIntake(file(), { key: 'key' }, abort.signal, vi.fn())).rejects.toThrow()
     expect(api).not.toHaveBeenCalled()
   })
+})
+
+it('distinguishes duplicate-content rejection from uncertain metadata receipt', async () => {
+  const duplicate = new ApiError({ code: 'DOCUMENT_CHECKSUM_CONFLICT', message: 'Metadata exists', status: 409, requestId: 'test' })
+  expect(intakeError(duplicate)).toContain('already been registered')
+  api.mockRejectedValueOnce(duplicate)
+  const state: IntakeProgress = { key: 'stable' }
+  await expect(sendIntake(file(), state, new AbortController().signal, vi.fn())).rejects.toBe(duplicate)
+  expect(state.metadataUncertain).toBe(false)
+  expect(state.document).toBeUndefined()
+  api.mockRejectedValueOnce(new Error('connection lost'))
+  await expect(sendIntake(file(), state, new AbortController().signal, vi.fn())).rejects.toThrow('connection lost')
+  expect(state.metadataUncertain).toBe(true)
 })

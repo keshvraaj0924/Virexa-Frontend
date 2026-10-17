@@ -10,6 +10,8 @@ export function validateIntakeFile(file: File) {
 }
 export function intakeError(error: unknown) {
   if (error instanceof ApiError) {
+    if (error.code === 'DOCUMENT_CHECKSUM_CONFLICT') return 'This file has already been registered. Check the quarantine records for its receipt.'
+    if (error.code === 'DOCUMENT_QUOTA_EXCEEDED') return 'This workspace has reached its intake capacity. Contact your administrator.'
     if (error.status === 401) return 'Your session has expired. Sign in again before uploading.'
     if (error.status === 403 || error.status === 404) return 'This document is unavailable or you do not have access.'
     if (error.status === 413) return 'Choose a non-empty file up to 25 MiB.'
@@ -33,8 +35,14 @@ export async function sendIntake(file: File, state: IntakeProgress, signal: Abor
     phase('Creating private intake record…')
     // Metadata creation is not idempotent. Do not automatically repeat an uncertain request.
     state.metadataUncertain = true
-    state.document = (await apiRequest<DocumentRecord>('/documents', { method: 'POST', signal, body: JSON.stringify({ originalFileName: file.name, mediaType: file.type, sizeBytes: file.size, checksumSha256, source: 'upload' }) })).data
-    state.metadataUncertain = false
+    try {
+      state.document = (await apiRequest<DocumentRecord>('/documents', { method: 'POST', signal, body: JSON.stringify({ originalFileName: file.name, mediaType: file.type, sizeBytes: file.size, checksumSha256, source: 'upload' }) })).data
+      state.metadataUncertain = false
+    } catch (error) {
+      // A definitive client-error response did not create a record. Transport/server errors remain uncertain.
+      if (error instanceof ApiError && error.status >= 400 && error.status < 500) state.metadataUncertain = false
+      throw error
+    }
   }
   const id = state.document.id
   const current = (await apiRequest<DocumentRecord>(`/documents/${encodeURIComponent(id)}`, { signal })).data
