@@ -14,7 +14,7 @@ export default async function AppShellPage() {
           <div className="panel-heading"><div><span className="eyebrow">SESSION</span><h2>Workspace ready</h2></div><span className="status-chip">Authenticated</span></div>
           <div className="activity-row"><div><strong>{session.user.displayName}</strong><span>{session.user.email}</span></div><span>{session.user.role}</span></div>
         </section>
-        <WorkflowPanel role={session.user.role} />
+        {process.env.VIREXA_AUTH_CANDIDATE === '1' ? <section className="dashboard-panel" aria-label="Authentication preview"><h2>Authentication preview</h2><p>Your session is connected to the Python authentication candidate. Documents, workflows, user management, audit logs and security settings are unavailable in this preview.</p></section> : <WorkflowPanel role={session.user.role} />}
       </section>
     </main>
   )
