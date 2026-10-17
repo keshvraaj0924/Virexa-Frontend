@@ -63,3 +63,47 @@ describe('private quarantine proxy boundary', () => {
     expect(await (await proxyDocuments(request(['documents']), ['documents'])).text()).not.toContain('private storage path')
   })
 })
+it('aborts an unconsumed redirect response and strips upstream cookies', async () => {
+  let upstreamSignal: AbortSignal | undefined
+  vi.stubGlobal('fetch', vi.fn(async (_url, init) => {
+    upstreamSignal = init.signal
+    return new Response('unread redirect body', { status: 302, headers: { Location: 'https://evil.example' } })
+  }))
+  expect((await proxyDocuments(request(['documents']), ['documents'])).status).toBe(502)
+  expect(upstreamSignal?.aborted).toBe(true)
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { headers: { 'Set-Cookie': 'unexpected=credential; HttpOnly', 'X-Private': 'storage' } })))
+  const response = await proxyDocuments(request(['documents']), ['documents'])
+  expect(response.headers.has('set-cookie')).toBe(false)
+  expect(response.headers.has('x-private')).toBe(false)
+})
+it('cancels oversized upstream JSON without buffering it all', async () => {
+  const cancel = vi.fn()
+  let calls = 0
+  const stream = new ReadableStream({ pull(controller) { calls++; controller.enqueue(new Uint8Array(600000)) }, cancel })
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(stream)))
+  expect((await proxyDocuments(request(['documents']), ['documents'])).status).toBe(502)
+  expect(cancel).toHaveBeenCalledOnce()
+  expect(calls).toBeLessThanOrEqual(3)
+})
+it('propagates client abort to the upstream and incoming stream', async () => {
+  const abort = new AbortController()
+  const cancel = vi.fn()
+  let ready!: () => void
+  const started = new Promise<void>(resolve => { ready = resolve })
+  vi.stubGlobal('fetch', vi.fn((_url, init) => new Promise((_resolve, reject) => { init.signal.addEventListener('abort', () => reject(new Error('aborted'))); ready() })))
+  const req = new Request(`http://localhost/api/v1/${content.join('/')}`, { method: 'PUT', headers: { Cookie: 'session=x', Origin: 'http://127.0.0.1:3000', 'Content-Type': 'application/pdf' }, body: new ReadableStream({ cancel }), signal: abort.signal, duplex: 'half' } as RequestInit)
+  const response = proxyDocuments(req, content)
+  await started; abort.abort()
+  expect((await response).status).toBe(503)
+  expect(cancel).toHaveBeenCalledOnce()
+})
+it('enforces an upstream deadline and cleans up pending reads', async () => {
+  vi.useFakeTimers()
+  try {
+    vi.stubGlobal('fetch', vi.fn((_url, init) => new Promise((_resolve, reject) => { init.signal.addEventListener('abort', () => reject(new Error('timed out'))) })))
+    const response = proxyDocuments(request(['documents']), ['documents'])
+    await vi.advanceTimersByTimeAsync(10000)
+    expect((await response).status).toBe(503)
+    expect(vi.getTimerCount()).toBe(0)
+  } finally { vi.useRealTimers() }
+})

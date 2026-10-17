@@ -84,5 +84,5 @@ export async function proxyDocuments(request: Request, segments: string[]) {
     const payload = new TextDecoder().decode(bytes)
     return new Response(response.status === 204 ? null : payload, { status: response.status, headers: { ...noStore, 'Content-Type': 'application/json' } })
   } catch { return fail(exceeded ? 413 : 503, exceeded ? 'PAYLOAD_TOO_LARGE' : 'DEPENDENCY_UNAVAILABLE') }
-  finally { clearTimeout(timer); request.signal.removeEventListener('abort', abort); controller.signal.removeEventListener('abort', cancel); cancel() }
+  finally { controller.abort(); clearTimeout(timer); request.signal.removeEventListener('abort', abort); controller.signal.removeEventListener('abort', cancel); cancel() }
 }

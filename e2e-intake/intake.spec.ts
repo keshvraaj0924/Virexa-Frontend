@@ -12,13 +12,13 @@ test('real bytes reach quarantine with safe repeated, interrupted, retry and ten
   await expect(page.getByRole('heading', { name: 'Private document intake' })).toBeVisible()
   for (const name of ['Workflows', 'Users & Access', 'Audit Log', 'Security']) await expect(page.getByRole('link', { name, exact: true })).toHaveCount(0)
   await page.getByLabel('Choose a document').setInputFiles({ name: 'unsupported.txt', mimeType: 'text/plain', buffer: Buffer.from('synthetic') })
-  await expect(page.getByRole('alert')).toContainText('PDF, PNG or JPEG')
+  await expect(page.getByRole('region', { name: 'Upload a document' }).getByRole('alert')).toContainText('PDF, PNG or JPEG')
   await expect(page.getByRole('button', { name: 'Upload to quarantine' })).toBeDisabled()
   await page.getByLabel('Choose a document').setInputFiles(fixture)
   let creations = 0
   page.on('request', request => { if (request.url().endsWith('/api/v1/documents') && request.method() === 'POST') creations++ })
   await page.getByRole('button', { name: 'Upload to quarantine' }).evaluate((button: HTMLButtonElement) => { button.click(); button.click() })
-  await expect(page.getByRole('status')).toContainText('Received in private quarantine. Pending scan.')
+  await expect(page.getByRole('region', { name: 'Upload a document' }).getByRole('status')).toContainText('Received in private quarantine. Pending scan.')
   expect(creations).toBe(1)
   const list = await page.request.get('/api/v1/documents?limit=50')
   expect(list.status()).toBe(200)
@@ -56,10 +56,10 @@ test('real bytes reach quarantine with safe repeated, interrupted, retry and ten
   await intercepted
   await page.getByRole('button', { name: 'Cancel upload' }).click()
   release()
-  await expect(page.getByRole('alert')).toContainText('Upload stopped')
+  await expect(page.getByRole('region', { name: 'Upload a document' }).getByRole('alert')).toContainText('Upload stopped')
   const beforeRetry = creations
   await page.getByRole('button', { name: 'Retry upload' }).click()
-  await expect(page.getByRole('status')).toContainText('Received in private quarantine. Pending scan.')
+  await expect(page.getByRole('region', { name: 'Upload a document' }).getByRole('status')).toContainText('Received in private quarantine. Pending scan.')
   expect(creations).toBe(beforeRetry)
   await expect(page.getByText('cancel-retry.pdf', { exact: true })).toBeVisible()
 
@@ -71,10 +71,10 @@ test('real bytes reach quarantine with safe repeated, interrupted, retry and ten
   }, { times: 1 })
   await page.getByLabel('Choose a document').setInputFiles({ ...fixture, name: 'lost-confirmation.pdf' })
   await page.getByRole('button', { name: 'Upload to quarantine' }).click()
-  await expect(page.getByRole('alert')).toContainText('could not be confirmed')
+  await expect(page.getByRole('region', { name: 'Upload a document' }).getByRole('alert')).toContainText('could not be confirmed')
   const beforeRecovery = creations
   await page.getByRole('button', { name: 'Retry upload' }).click()
-  await expect(page.getByRole('status')).toContainText('Received in private quarantine. Pending scan.')
+  await expect(page.getByRole('region', { name: 'Upload a document' }).getByRole('status')).toContainText('Received in private quarantine. Pending scan.')
   expect(creations).toBe(beforeRecovery)
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.screenshot({ path: 'test-results/intake-desktop.png', fullPage: true })
