@@ -55,3 +55,6 @@
 
 .vx-orbit-pause{position:absolute;bottom:0;right:0;border:1px solid #ffffff30;border-radius:7px;background:#101c2c80;color:#c6d9f0;padding:7px 10px;font-size:10px;cursor:pointer}
 @media(prefers-reduced-motion:reduce){.vx-orbit-pause{display:none}}
+/* Leave clear space for the floating product guide without covering footer text. */
+@media(min-width:951px){.vx-auth-art-caption{right:175px}}
+@media(max-width:760px){.vx-auth-trust{display:none}.vx-auth-main{padding-bottom:105px}}

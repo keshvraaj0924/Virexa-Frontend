@@ -25,10 +25,18 @@ export function DocumentOrbit() {
       const group = new THREE.Group()
       const geometry = new THREE.BoxGeometry(1.6, 2.1, 0.07)
       const materials = [0x418fde, 0x3a3152, 0xaccfff].map((color) => new THREE.MeshStandardMaterial({ color, metalness: 0.55, roughness: 0.3, transparent: true, opacity: 0.88 }))
+      const lineGeometry = new THREE.BoxGeometry(1.05, 0.045, 0.012)
+      const lineMaterial = new THREE.MeshStandardMaterial({ color: 0xe3f3ff, roughness: 0.8 })
       materials.forEach((material, index) => {
         const page = new THREE.Mesh(geometry, material)
         page.position.set((index - 1) * 0.3, (index - 1) * 0.12, index * 0.35)
         page.rotation.z = (index - 1) * -0.15
+        for (let row = 0; row < 5; row++) {
+          const line = new THREE.Mesh(lineGeometry, lineMaterial)
+          line.position.set(row === 4 ? -0.15 : 0, 0.5 - row * 0.22, 0.045)
+          if (row === 4) line.scale.x = 0.7
+          page.add(line)
+        }
         group.add(page)
       })
       group.rotation.set(0.2, -0.5, -0.15)
@@ -76,7 +84,7 @@ export function DocumentOrbit() {
         document.removeEventListener('visibilitychange', update)
         reduced.removeEventListener('change', update); desktop.removeEventListener('change', update)
         element.removeEventListener('webglcontextlost', contextLost)
-        geometry.dispose(); materials.forEach((material) => material.dispose()); renderer.dispose()
+        geometry.dispose(); lineGeometry.dispose(); lineMaterial.dispose(); materials.forEach((material) => material.dispose()); renderer.dispose()
       }
     }).catch(() => { /* Decoration must never prevent authentication. */ })
     return () => { cancelled = true; cleanup?.(); element.style.opacity = '0'; element.parentElement?.removeAttribute('data-rendered') }
