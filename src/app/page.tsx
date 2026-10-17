@@ -4,7 +4,7 @@ import {
   Files, LockKeyhole, ScanLine, ShieldCheck, Sparkles, Workflow,
 } from 'lucide-react'
 import { VirexaMark } from '@/components/brand/virexa-mark'
-import { AmbientWave } from '@/components/marketing/ambient-wave'
+import { SilkWave } from '@/components/visual/silk-wave'
 import { EntranceMotion } from '@/components/marketing/entrance-motion'
 
 const capabilities = [
@@ -40,7 +40,7 @@ export default function HomePage() {
     <main className="vx-landing">
       <EntranceMotion />
       <div className="vx-dark-stage">
-        <AmbientWave />
+        <SilkWave />
         <div className="vx-stage-texture" aria-hidden="true" />
         <nav className="vx-site-nav" aria-label="Primary navigation">
           <Link href="/" className="vx-wordmark" aria-label="Virexa home">
@@ -54,19 +54,19 @@ export default function HomePage() {
           </div>
           <div className="vx-site-actions">
             <Link href="/login" className="vx-nav-signin">Sign in</Link>
-            <Link href="/register" className="vx-button vx-button-blue vx-nav-get-started">Get started <ArrowUpRight size={16} /></Link>
+            <Link href="/register" className="vx-button vx-button-blue vx-nav-get-started">Register <ArrowUpRight size={16} /></Link>
           </div>
         </nav>
 
         <section className="vx-hero" aria-labelledby="vx-hero-heading">
           <div className="vx-hero-content">
             <div className="vx-eyebrow vx-eyebrow-light" data-vx-enter>
-              <Sparkles size={13} aria-hidden="true" /> INTELLIGENT ACCOUNTS PAYABLE OPERATIONS
+              <Sparkles size={13} aria-hidden="true" /> DOCUMENT INTELLIGENCE, BEAUTIFULLY CONNECTED
             </div>
-            <h1 id="vx-hero-heading" data-vx-enter>From invoices<br />to <span>insights.</span></h1>
-            <p data-vx-enter>Receive, understand, validate, and approve invoices in one intelligent workspace. Give your team time back without losing control.</p>
+            <h1 id="vx-hero-heading" data-vx-enter>From documents.<br />To decisions.<br /><span>Beautifully simple.</span></h1>
+            <p data-vx-enter>Your documents, workflows and people. Finally in one place. Bring clarity to accounts payable, with your team in control.</p>
             <div className="vx-hero-actions" data-vx-enter>
-              <Link href="/register" className="vx-button vx-button-blue">Get started <ArrowRight size={17} aria-hidden="true" /></Link>
+              <Link href="/register" className="vx-button vx-button-blue">Create your workspace <ArrowRight size={17} aria-hidden="true" /></Link>
               <a href="#platform" className="vx-button vx-button-outline">Explore Virexa <ArrowUpRight size={16} aria-hidden="true" /></a>
             </div>
             <div className="vx-hero-assurances" data-vx-enter>
@@ -84,15 +84,15 @@ export default function HomePage() {
               <span className="vx-doc-overline">INVOICE</span><span className="vx-doc-line" /><span className="vx-doc-line short" /><span className="vx-doc-line" />
             </div>
             <div className="vx-document vx-document-front" aria-hidden="true">
-              <div className="vx-doc-head"><FileCheck2 size={24} /><strong>INVOICE</strong></div>
-              <span className="vx-doc-sub">Invoice document</span>
+              <div className="vx-doc-head"><FileCheck2 size={24} /><strong>Invoice</strong></div>
+              <span className="vx-doc-sub">DOCUMENT INTELLIGENCE</span>
               <div className="vx-doc-divider" />
               <span className="vx-doc-line" /><span className="vx-doc-line short" /><span className="vx-doc-line" />
               <div className="vx-doc-table"><i /><i /><i /></div>
               <div className="vx-doc-total"><span>Validated fields</span><strong>✓</strong></div>
             </div>
             <div className="vx-process-glass">
-              <div className="vx-process-top"><span>Processing workflow</span><span className="vx-process-badge">Illustrative</span></div>
+              <div className="vx-process-top"><span>Document journey</span><span className="vx-process-badge">Illustrative</span></div>
               <div className="vx-process-row"><span className="vx-process-icon"><Check size={13} /></span><span>Document received</span></div>
               <div className="vx-process-row"><span className="vx-process-icon"><Check size={13} /></span><span>Fields extracted</span></div>
               <div className="vx-process-row"><span className="vx-process-icon"><Check size={13} /></span><span>Validation requested</span></div>
@@ -156,3 +156,4 @@ export default function HomePage() {
     </main>
   )
 }
+
