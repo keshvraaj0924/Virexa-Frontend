@@ -1,4 +1,5 @@
 import type { DocumentRecord, DocumentListResponse, InitiateDocumentUploadResponse } from '@/contracts/documents'
+import { notifyAccessDenied } from '@/lib/auth/access-events'
 import { ApiError, apiRequest } from './client'
 
 export const MAX_INTAKE_BYTES = 25 * 1024 * 1024
@@ -59,6 +60,7 @@ export async function sendIntake(file: File, state: IntakeProgress, signal: Abor
   if (!state.bytesSent) {
     phase('Uploading to private quarantine…')
     const response = await fetch(url, { method: 'PUT', credentials: 'same-origin', redirect: 'error', headers: { 'Content-Type': file.type }, body: file, signal })
+    if (!response.ok) notifyAccessDenied(response.status)
     if (!response.ok) throw new ApiError({ code: 'UPLOAD_FAILED', message: 'Upload failed', status: response.status, requestId: 'unknown' })
     state.bytesSent = true
   }

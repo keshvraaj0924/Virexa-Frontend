@@ -1,3 +1,4 @@
+import { parseEffectivePermissions } from '@/contracts/capabilities'
 import { candidateOrigin } from './candidate-config'
 import { headers } from 'next/headers'
 import type { ApiSuccess } from '@/contracts/api'
@@ -38,3 +39,7 @@ export async function getServerAuthenticatedContext(): Promise<AuthenticatedCont
   return authenticatedServerRequest<AuthenticatedContext>('/me')
 }
 
+
+export async function getServerEffectivePermissions() {
+  return parseEffectivePermissions(await authenticatedServerRequest<unknown>('/me/permissions'))
+}
