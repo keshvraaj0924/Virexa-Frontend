@@ -15,7 +15,7 @@ export function AuthFrame({ heading, description, variant, children }: AuthFrame
         <div className="vx-auth-content-inner"><div className="vx-auth-main">
           <div className="vx-auth-kicker"><span/> {variant === 'login' ? 'YOUR WORKSPACE AWAITS' : 'A NEW WAY FORWARD'}</div>
           <h1 id="vx-auth-heading">{heading}</h1><p className="vx-auth-intro">{description}</p>{children}
-        </div><p className="vx-auth-trust"><LockKeyhole size={13}/> Your team. Your operational workspace.</p></div>
+        </div><p className="vx-auth-trust"><LockKeyhole size={13}/> Your work. Your private workspace.</p></div>
       </section>
       <aside className="vx-auth-art" aria-label="Virexa platform introduction">
         <SilkWave/><div className="vx-auth-art-content"><span className="vx-auth-art-label">INTELLIGENCE IN MOTION</span><h2>From everyday documents.<br/><span>To extraordinary clarity.</span></h2><p>A calmer place to manage the work that moves your business.</p></div>

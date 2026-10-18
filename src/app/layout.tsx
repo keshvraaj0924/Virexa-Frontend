@@ -11,6 +11,7 @@ import './premium-workspace.css'
 import './refined-journey.css'
 import './access-workspace.css'
 import './usage-workspace.css'
+import './verified-signup.css'
 
 export const metadata: Metadata = {
   title: 'Virexa — Beyond Automation',

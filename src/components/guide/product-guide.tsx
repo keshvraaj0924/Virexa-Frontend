@@ -5,12 +5,12 @@ import { usePathname } from 'next/navigation'
 import { ChevronRight, X } from 'lucide-react'
 
 const tips = {
-  login: { title: 'Let’s get you back in.', steps: ['Use the email address associated with your Virexa account.', 'The eye button lets you check your password before signing in.', 'New here? Create a workspace using the link below the form.'] },
-  register: { title: 'A clear start for your team.', steps: ['Enter your name and the organization this workspace belongs to.', 'Choose a password with at least 12 characters. A unique passphrase works well.', 'Your workspace opens only after the server confirms your account.'] },
-  documents: { title: 'From intake to review.', steps: ['Your document inbox shows the records returned by your organization’s API.', 'Open a document to inspect its extraction and review available fields.', 'Check the source before confirming changes. Available actions depend on your role.'] },
-  workflows: { title: 'Keep your process in view.', steps: ['Browse the workflows available to your organization.', 'Check each workflow’s current status before taking action.', 'Creation and management controls depend on your assigned role.'] },
+  login: { title: 'Let’s get you back in.', steps: ['Choose Individual or Organization, then use the email associated with that account.', 'The eye button lets you check your password before signing in.', 'New here? Create a workspace using the link below the form.'] },
+  register: { title: 'A clear start for your work.', steps: ['Choose an individual workspace or an organization workspace, then enter your details.', 'Verify the code emailed to you before choosing a unique password or long passphrase.', 'Your workspace opens only after the server verifies your account. Each email belongs to one workspace.'] },
+  documents: { title: 'From intake to review.', steps: ['Your document inbox shows the records returned by your workspace’s API.', 'Open a document to inspect its extraction and review available fields.', 'Check the source before confirming changes. Available actions depend on your role.'] },
+  workflows: { title: 'Keep your process in view.', steps: ['Browse the workflows available in your workspace.', 'Check each workflow’s current status before taking action.', 'Creation and management controls depend on your assigned role.'] },
   workspace: { title: 'Find your next step.', steps: ['Use Documents for intake and extraction review.', 'Use Workflows to inspect the processes available to your team.', 'Security shows session controls when supported by your connected backend.'] },
-  home: { title: 'Meet your connected workspace.', steps: ['Virexa brings document intake, extraction and review together.', 'Sign in to continue with your team, or create an organization workspace.', 'I’m your built-in product guide. These tips don’t access or change your documents.'] },
+  home: { title: 'Meet your connected workspace.', steps: ['Virexa brings document intake, extraction and review together.', 'Sign in to continue, or create an individual or organization workspace.', 'I’m your built-in product guide. These tips don’t access or change your documents.'] },
 }
 
 function guideFor(path: string) {

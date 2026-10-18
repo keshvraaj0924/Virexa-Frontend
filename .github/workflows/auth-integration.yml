@@ -23,6 +23,11 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
+      ENVIRONMENT: test
+      ALLOW_LEGACY_REGISTRATION: 'false'
+      SIGNUP_EMAIL_DELIVERY: local_smtp
+      SIGNUP_SMTP_PORT: '1025'
+      SIGNUP_CAPTURE_DIRECTORY: /tmp/virexa-synthetic-mail
       DATABASE_URL: postgresql+asyncpg://virexa_test:isolated-ci-only@127.0.0.1:5432/virexa_auth_browser
       ALLOWED_ORIGINS: http://127.0.0.1:3000
       VIREXA_AUTH_CANDIDATE: '1'
@@ -38,11 +43,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: keshvraaj0924/Virexa-backend
-          ref: 174684b3cf17bb35a8bfa22f5bbd8f506da7020d
+          ref: 52b46c9c4e20d3a9b8dc42ad03293d5a73220ac4
           path: .auth-backend
           persist-credentials: false
       - name: Verify immutable backend pin
-        run: test "$(git -C .auth-backend rev-parse HEAD)" = '174684b3cf17bb35a8bfa22f5bbd8f506da7020d'
+        run: test "$(git -C .auth-backend rev-parse HEAD)" = '52b46c9c4e20d3a9b8dc42ad03293d5a73220ac4'
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -54,6 +59,7 @@ jobs:
         run: |
           python -m pip install -e '.[dev]'
           python -m alembic upgrade head
+          python tools/synthetic_signup_smtp.py 1025 "$SIGNUP_CAPTURE_DIRECTORY" > /tmp/virexa-synthetic-smtp.log 2>&1 &
           python -m uvicorn app.main:create_app --factory --host 127.0.0.1 --port 4000 --no-access-log > /tmp/virexa-auth-service.log 2>&1 &
       - name: Wait for actual database readiness
         run: |
@@ -75,3 +81,7 @@ jobs:
           name: workspace-visual-review
           path: test-results/*.png
           retention-days: 7
+
+      - name: Remove ephemeral synthetic email captures
+        if: always()
+        run: rm -rf -- "$SIGNUP_CAPTURE_DIRECTORY"

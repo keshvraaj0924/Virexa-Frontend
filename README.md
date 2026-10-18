@@ -43,7 +43,7 @@ Copy `.env.example` to `.env.local` and point `NEXT_PUBLIC_API_URL` at the real 
 
 ### Integration and release boundaries
 
-- Login remains `{email,password}`; registration remains `{displayName,email,password,organizationName}`. Successful responses must set the real HttpOnly session cookie before navigation to `/app`.
+- Legacy Node login retains `{email,password}`. The verified Python candidate adds `accountType` to login and replaces registration with `/auth/signup/start`, `/verify`, and `/complete`. Unsupported legacy registration is explicitly unavailable. Successful account completion must set the real HttpOnly session cookie before navigation to `/app`.
 - Production SSR requires a deployment topology that sends the session cookie to the frontend host. Prefer one public host with a reverse proxy routing `/api/v1` to the backend. A host-only cookie on an unrelated API hostname is not available to frontend SSR. The frontend still needs an absolute API URL for server requests; configure the same public origin plus `/api/v1`.
 - The Python authentication foundation alone does not implement the full document, workflow, organization, audit and session-management API. Existing app views require their corresponding backend endpoints. An authentication-only candidate is not a production-ready app backend.
 - Three.js is loaded only for the desktop decorative document sculpture, subject to reduced-motion/data-saving settings. CSS remains the fallback; WebGL failures do not block forms. Rendering pauses in hidden tabs and when offscreen, and GPU resources are disposed on unmount. GSAP continues to enhance the existing marketing hero; Framer Motion provides small button feedback.
@@ -72,3 +72,9 @@ current-organization analytics. It shows independently instrumented meters, boun
 operation history and read-only preview entitlement state. AI tokens/OCR/workflow
 metrics remain unavailable until genuinely instrumented; payment setup is not enabled.
 See [usage integration and verification](docs/usage-entitlements.md).
+
+### Verified individual and organization signup candidate
+
+Enable `VIREXA_AUTH_CANDIDATE=1`, `AUTH_API_ORIGIN=http://127.0.0.1:4000`, and `NEXT_PUBLIC_API_URL=/api/v1` at build and runtime for the reviewed Python backend. UI-only browser checks also build with this candidate flag; real integration checks require the pinned backend and test-only SMTP configuration described below.
+
+Registration and login now give Individual and Organization accounts equal prominence and use a generic Email field. Registration verifies an emailed code before asking for a password or creating a session. Account-kind labels in the app come from the server. Each email currently belongs to one isolated workspace. See [verified signup](docs/verified-signup.md) for contracts, delivery limitations, and the real PostgreSQL/loopback SMTP browser checks. No real email provider, merge, or deployment is configured by this change.

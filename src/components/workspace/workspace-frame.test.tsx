@@ -9,7 +9,7 @@ vi.mock('@/components/access/access-provider', () => ({ useAccess: () => ({ allo
 const router = vi.hoisted(() => ({ replace: vi.fn(), refresh: vi.fn() }))
 vi.mock('next/navigation', () => ({ useRouter: () => router, usePathname: () => '/app/documents' }))
 vi.mock('@/lib/api/auth', () => ({ authApi: { logout: vi.fn() } }))
-const session: AuthSession = { user: { id: 'u', displayName: 'Alex', email: 'a@example.com', organizationId: 'o', organizationName: 'Acme', role: 'viewer' }, expiresAt: '2026-12-01T00:00:00Z' }
+const session: AuthSession = { user: { accountType: 'organization', id: 'u', displayName: 'Alex', email: 'a@example.com', organizationId: 'o', organizationName: 'Acme', role: 'viewer' }, expiresAt: '2026-12-01T00:00:00Z' }
 afterEach(cleanup)
 beforeEach(() => { vi.clearAllMocks(); capabilities.values = [] })
 it('keeps navigation role-aware and only links implemented routes', () => {
