@@ -1,5 +1,5 @@
 import { apiRequest } from './client'
-export const AUDIT_ACTIONS = ['auth.signup.completed', 'auth.login', 'auth.logout', 'auth.session.revoked', 'document.created', 'document.intake.completed', 'document.intake.failed', 'access.denied'] as const
+export const AUDIT_ACTIONS = ['auth.signup.completed', 'auth.login', 'auth.logout', 'auth.session.revoked', 'workflow.created', 'workflow.updated', 'document.created', 'document.intake.completed', 'document.intake.failed', 'access.denied'] as const
 export type AuditAction = typeof AUDIT_ACTIONS[number]
 export const AUDIT_OUTCOMES = ['succeeded', 'failed', 'denied'] as const
 export type AuditOutcome = typeof AUDIT_OUTCOMES[number]
@@ -13,7 +13,7 @@ export function parseTenantAudit(value: unknown): TenantAuditPage {
   const coverage = value.coverage
   if (coverage.mode !== 'forward_only' || coverage.version !== 'python-audit-v1' || typeof coverage.notice !== 'string' || !Array.isArray(coverage.actions) || !coverage.actions.every(a => AUDIT_ACTIONS.includes(a))) return invalid()
   const events = value.events.map((e: unknown): TenantAuditEvent => {
-    if (!object(e) || !uuid(e.id) || !uuid(e.organizationId) || !(e.actorUserId === null || uuid(e.actorUserId)) || !(e.resourceId === null || uuid(e.resourceId)) || !uuid(e.requestId) || !AUDIT_ACTIONS.includes(e.action as AuditAction) || !['user', 'session', 'document', 'access'].includes(e.resourceType as string) || typeof e.createdAt !== 'string' || Number.isNaN(Date.parse(e.createdAt)) || !object(e.metadata) || !AUDIT_OUTCOMES.includes(e.metadata.outcome as AuditOutcome)) return invalid()
+    if (!object(e) || !uuid(e.id) || !uuid(e.organizationId) || !(e.actorUserId === null || uuid(e.actorUserId)) || !(e.resourceId === null || uuid(e.resourceId)) || !uuid(e.requestId) || !AUDIT_ACTIONS.includes(e.action as AuditAction) || !['user', 'session', 'document', 'access', 'workflow'].includes(e.resourceType as string) || typeof e.createdAt !== 'string' || Number.isNaN(Date.parse(e.createdAt)) || !object(e.metadata) || !AUDIT_OUTCOMES.includes(e.metadata.outcome as AuditOutcome)) return invalid()
     // Pick only the documented public fields, never render arbitrary metadata.
     return { id: e.id, actorUserId: e.actorUserId, action: e.action as AuditAction, resourceType: e.resourceType as string, resourceId: e.resourceId, requestId: e.requestId, createdAt: e.createdAt, outcome: e.metadata.outcome as AuditOutcome }
   })

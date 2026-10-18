@@ -20,15 +20,16 @@ export async function proxyAuth(request: Request, segments: string[]) {
   )
   const usageAllowed = process.env.VIREXA_USAGE_ANALYTICS === '1' && request.method === 'GET' && ['usage/me', 'usage/me/history', 'usage/organization', 'usage/organization/history'].includes(path)
   const auditAllowed = process.env.VIREXA_AUDIT_EVENTS === '1' && request.method === 'GET' && path === 'audit/events'
-  if (!allowed && !sessionsAllowed && !usageAllowed && !auditAllowed) return failure(404, 'FEATURE_UNAVAILABLE', 'This endpoint is unavailable in the authentication preview.')
+  const workflowsAllowed = process.env.VIREXA_WORKFLOW_RECORDS === '1' && ((path === 'workflows' && ['GET', 'POST'].includes(request.method)) || (/^workflows\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(path) && ['GET', 'PATCH'].includes(request.method)))
+  if (!workflowsAllowed && !allowed && !sessionsAllowed && !usageAllowed && !auditAllowed) return failure(404, 'FEATURE_UNAVAILABLE', 'This endpoint is unavailable in the authentication preview.')
   const headers = new Headers({ Accept: 'application/json' })
   // Forward the original Origin, never synthesize trust from Host or forwarded headers.
-  for (const name of ['origin', 'cookie', 'content-type', 'x-request-id']) {
+  for (const name of ['origin', 'cookie', 'content-type', 'x-request-id', ...(workflowsAllowed ? ['idempotency-key'] : [])]) {
     const value = request.headers.get(name)
     if (value) headers.set(name, value)
   }
   let body: Uint8Array | undefined
-  if (request.method === 'POST' && request.body) {
+  if (['POST', 'PATCH'].includes(request.method) && request.body) {
     const reader = request.body.getReader()
     const chunks: Uint8Array[] = []
     let size = 0
@@ -52,6 +53,10 @@ export async function proxyAuth(request: Request, segments: string[]) {
         if (value !== null) target.searchParams.set(key, value)
       }
     }
+    if (workflowsAllowed && request.method === 'GET' && path === 'workflows') {
+      const query = new URL(request.url).searchParams
+      for (const key of ['limit', 'cursor', 'status']) { const value = query.get(key); if (value !== null) target.searchParams.set(key, value) }
+    }
     if (auditAllowed) {
       const query = new URL(request.url).searchParams
       for (const key of ['limit', 'cursor', 'action', 'outcome']) {
@@ -70,7 +75,7 @@ export async function proxyAuth(request: Request, segments: string[]) {
     // Never follow redirects with credentials or leak upstream redirect destinations.
     if (response.status >= 300 && response.status < 400) return failure(502, 'UPSTREAM_ERROR', 'Authentication service returned an invalid response.')
     const outgoing = new Headers(noStore)
-    for (const name of ['content-type', 'x-request-id', 'retry-after']) {
+    for (const name of ['content-type', 'x-request-id', ...(workflowsAllowed ? ['idempotency-key'] : []), 'retry-after']) {
       const value = response.headers.get(name)
       if (value) outgoing.set(name, value)
     }

@@ -91,3 +91,14 @@ it('uses effective audit permission rather than guessed role', () => {
   view.rerender(<WorkspaceFrame authOnly auditEvents session={{ ...session, user: { ...session.user, role: 'admin' } }}>Audit</WorkspaceFrame>)
   expect(screen.queryByRole('link', { name: 'Audit Log' })).toBeNull()
 })
+
+it('requires the workflow feature flag and server read capability in candidate mode', () => {
+  capabilities.values = ['workflow:read']
+  const view = render(<WorkspaceFrame authOnly session={session}>Records</WorkspaceFrame>)
+  expect(screen.queryByRole('link', { name: 'Workflows' })).toBeNull()
+  view.rerender(<WorkspaceFrame authOnly workflowRecords session={session}>Records</WorkspaceFrame>)
+  expect(screen.getByRole('link', { name: 'Workflows' })).toBeTruthy()
+  capabilities.values = []
+  view.rerender(<WorkspaceFrame authOnly workflowRecords session={session}>Records</WorkspaceFrame>)
+  expect(screen.queryByRole('link', { name: 'Workflows' })).toBeNull()
+})

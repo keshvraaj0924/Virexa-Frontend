@@ -7,7 +7,7 @@ export default async function AppLayout({ children }: Readonly<{ children: React
   const session = await getServerSession()
   if (!session) redirect('/login')
   const candidate = process.env.VIREXA_AUTH_CANDIDATE === '1'
-  const workspace = <WorkspaceFrame auditEvents={process.env.VIREXA_AUDIT_EVENTS === '1'} usageAnalytics={process.env.VIREXA_USAGE_ANALYTICS === '1'} session={session} authOnly={process.env.VIREXA_AUTH_CANDIDATE === '1'} sessionControls={process.env.VIREXA_SESSION_CONTROLS === '1'} documentIntake={process.env.VIREXA_DOCUMENT_INTAKE === '1'}>{children}</WorkspaceFrame>
+  const workspace = <WorkspaceFrame workflowRecords={process.env.VIREXA_WORKFLOW_RECORDS === '1'} auditEvents={process.env.VIREXA_AUDIT_EVENTS === '1'} usageAnalytics={process.env.VIREXA_USAGE_ANALYTICS === '1'} session={session} authOnly={process.env.VIREXA_AUTH_CANDIDATE === '1'} sessionControls={process.env.VIREXA_SESSION_CONTROLS === '1'} documentIntake={process.env.VIREXA_DOCUMENT_INTAKE === '1'}>{children}</WorkspaceFrame>
   return candidate ? <AccessProvider initial={await getServerEffectivePermissions()}>{workspace}</AccessProvider> : workspace
 }
 
