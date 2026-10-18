@@ -100,3 +100,7 @@ The workflow integration workflow uses an immutable backend pin and isolated Pos
 ### Organization members and role administration
 
 The optional `VIREXA_TEAM_ADMINISTRATION=1` Python candidate adds a real, capability-gated existing-member roster and version-checked role changes with explicit access-impact confirmation. Auditors have read-only access; individual accounts receive a personal-workspace state. Self-role changes, platform-role grants and cross-organization selection are unavailable. Invitations and account creation are not included. See [organization members](docs/organization-members.md) for the bounded API, safety behavior and PostgreSQL/Chromium verification. Default Node hierarchy behavior is preserved.
+
+### Read-only scan results
+
+Document intake displays the paired backend’s pending, scan-passed and rejected results. Scanning is one security layer; extraction and downloads remain unavailable. No scanner controls or bypasses are exposed. See [scan status](docs/document-scan-status.md) for the public-state contract and the real-worker browser test’s explicitly synthetic scanner fixture.

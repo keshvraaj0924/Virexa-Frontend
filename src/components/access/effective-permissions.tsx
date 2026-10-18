@@ -30,7 +30,7 @@ export function EffectivePermissions() {
         const allowed = access.allows(capability)
         return <article key={capability} className="vx-access-item"><span className={allowed ? 'vx-access-state is-allowed' : 'vx-access-state'}>{allowed ? <Check size={16} aria-hidden="true"/> : <LockKeyhole size={16} aria-hidden="true"/>}{allowed ? 'Allowed' : 'Restricted'}</span><h3>{labels[capability].title}</h3><p>{labels[capability].description}</p></article>
       })}</div>
-      <p>Each request is also checked against your workspace, resource ownership and current state. An allowed capability does not grant access to every record. Workflow execution, scanning, extraction, invitations and account creation are not available here.</p>
+      <p>Each request is also checked against your workspace, resource ownership and current state. An allowed capability does not grant access to every record. Document scans run only through the configured internal worker. Workflow execution, extraction, invitations and account creation are not available here.</p>
       <button className="text-button" onClick={() => void access.refresh()}>Refresh permissions</button>
     </>}
   </section>

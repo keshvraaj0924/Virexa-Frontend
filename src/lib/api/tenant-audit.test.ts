@@ -31,3 +31,10 @@ it('accepts documented member role events without exposing arbitrary metadata', 
   expect(parsed.events[0].action).toBe('organization.member.role_updated')
   expect(JSON.stringify(parsed)).not.toContain('NEVER_RENDER')
 })
+
+it('accepts scan events while stripping scanner details', () => {
+  const actions = ['document.scan.clean', 'document.scan.rejected', 'document.scan.error']
+  const parsed = parseTenantAudit({ ...data, events: actions.map(action => ({ ...data.events[0], action, resourceType: 'document' })), coverage: { ...data.coverage, actions } })
+  expect(parsed.events.map(event => event.action)).toEqual(actions)
+  expect(JSON.stringify(parsed)).not.toContain('NEVER_RENDER')
+})

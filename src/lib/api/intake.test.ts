@@ -30,11 +30,13 @@ describe('quarantine upload lifecycle', () => {
     }
     expect(fetch).not.toHaveBeenCalled()
   })
-  it('recovers uncertain completion without retransmission', async () => {
+  it.each(['pending_scan', 'clean', 'rejected'])('recovers uncertain completion at %s without retransmission', async scanStatus => {
     const fetch = vi.fn(); vi.stubGlobal('fetch', fetch)
-    api.mockResolvedValueOnce({ data: { ...document, scanStatus: 'pending_scan' } } as never)
-    expect((await sendIntake(file(), { key: 'key', document: document as never }, new AbortController().signal, vi.fn())).scanStatus).toBe('pending_scan')
+    api.mockResolvedValueOnce({ data: { ...document, scanStatus } } as never)
+    expect((await sendIntake(file(), { key: 'key', document: document as never }, new AbortController().signal, vi.fn())).scanStatus).toBe(scanStatus)
     expect(fetch).not.toHaveBeenCalled()
+    expect(api).toHaveBeenCalledTimes(1)
+    expect(api).toHaveBeenCalledWith('/documents/doc', { signal: expect.any(AbortSignal) })
   })
   it('does not silently repeat uncertain metadata creation or aborted work', async () => {
     await expect(sendIntake(file(), { key: 'key', metadataUncertain: true }, new AbortController().signal, vi.fn())).rejects.toThrow()

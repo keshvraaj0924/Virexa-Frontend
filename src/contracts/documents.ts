@@ -19,7 +19,7 @@ export interface DocumentRecord {
   sizeBytes: number
   checksumSha256: string
   status: DocumentStatus
-  scanStatus?: 'awaiting_upload' | 'pending_scan'
+  scanStatus?: 'awaiting_upload' | 'pending_scan' | 'clean' | 'rejected'
   failureCode: string | null
   receivedAt: string
   updatedAt: string
