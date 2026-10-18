@@ -50,7 +50,7 @@ export function WorkspaceFrame({ session, children, authOnly = false, documentIn
           <Link href="/app" className="vx-workspace-brand"><VirexaMark /> VIREXA</Link>
           <button className="vx-mobile-menu" aria-expanded={open} aria-controls="workspace-navigation" aria-label={open ? 'Close navigation' : 'Open navigation'} onClick={() => setOpen(!open)}>{open ? <X size={21} /> : <Menu size={21} />}</button>
         </div>
-        <div className="vx-workspace-tenant"><span className="vx-tenant-icon">{session.user.organizationName.slice(0, 1).toUpperCase()}</span><div><strong>{session.user.organizationName}</strong><small>Organization workspace</small></div></div>
+        <div className="vx-workspace-tenant"><span className="vx-tenant-icon">{session.user.organizationName.slice(0, 1).toUpperCase()}</span><div><strong>{session.user.organizationName}</strong><small>{session.user.accountType === 'individual' ? 'Individual workspace' : session.user.accountType === 'organization' ? 'Organization workspace' : 'Workspace'}</small></div></div>
         <nav id="workspace-navigation" className={open ? 'vx-workspace-nav is-open' : 'vx-workspace-nav'} aria-label="Main">
           <span className="vx-nav-caption">WORKSPACE</span>
           {navigation.map((item) => {

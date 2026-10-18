@@ -1,5 +1,5 @@
 import type { ApiFailure, ApiMeta, ApiSuccess } from '../../contracts/api'
-import type { ActiveSession, ApiErrorCode, AuthSession, LoginRequest, RegisterRequest, RevokeOtherSessionsResult } from '../../contracts/auth'
+import type { ActiveSession, ApiErrorCode, AuthSession, LoginRequest, RegisterRequest, RevokeOtherSessionsResult, SignupDetails, SignupChallenge, SignupProof, SignupCompletion } from '../../contracts/auth'
 
 import { notifyAccessDenied } from '@/lib/auth/access-events'
 
@@ -55,7 +55,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const authApi = {
-  session: () => request<ApiSuccess<AuthSession>>('/auth/session'),
+  session: (signal?: AbortSignal) => request<ApiSuccess<AuthSession>>('/auth/session', { signal }),
   me: () => request<ApiSuccess<AuthSession>>('/me'),
   activeSessions: (cursor?: string) => request<ApiSuccess<ActiveSession[]>>(`/auth/sessions?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`, { cache: 'no-store' }),
   login: (input: LoginRequest) => request<ApiSuccess<AuthSession>>('/auth/login', {
@@ -66,6 +66,9 @@ export const authApi = {
     method: 'POST',
     body: JSON.stringify(input),
   }),
+  startSignup: (input: SignupDetails, signal?: AbortSignal) => request<ApiSuccess<SignupChallenge>>('/auth/signup/start', { signal, method: 'POST', body: JSON.stringify(input) }),
+  verifySignup: (input: { challengeId: string; code: string }, signal?: AbortSignal) => request<ApiSuccess<SignupProof>>('/auth/signup/verify', { signal, method: 'POST', body: JSON.stringify(input) }),
+  completeSignup: (input: SignupCompletion, signal?: AbortSignal) => request<ApiSuccess<AuthSession>>('/auth/signup/complete', { signal, method: 'POST', body: JSON.stringify(input) }),
   logout: () => request<ApiSuccess<{ success: boolean }>>('/auth/logout', { method: 'POST' }),
   revokeOtherSessions: () => request<ApiSuccess<RevokeOtherSessionsResult>>('/auth/sessions/revoke-others', { method: 'POST' }),
   revokeSession: (sessionId: string) => request<ApiSuccess<{ success: boolean }>>(`/auth/sessions/${encodeURIComponent(sessionId)}`, {

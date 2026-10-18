@@ -72,3 +72,7 @@ current-organization analytics. It shows independently instrumented meters, boun
 operation history and read-only preview entitlement state. AI tokens/OCR/workflow
 metrics remain unavailable until genuinely instrumented; payment setup is not enabled.
 See [usage integration and verification](docs/usage-entitlements.md).
+
+### Verified individual and organization signup candidate
+
+Registration and login now give Individual and Organization accounts equal prominence and use a generic Email field. Registration verifies an emailed code before asking for a password or creating a session. Account-kind labels in the app come from the server. Each email currently belongs to one isolated workspace. See [verified signup](docs/verified-signup.md) for contracts, delivery limitations, and the real PostgreSQL/loopback SMTP browser checks. No real email provider, merge, or deployment is configured by this change.

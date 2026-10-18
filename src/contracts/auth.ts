@@ -1,3 +1,5 @@
+export type AccountType = 'individual' | 'organization'
+
 export type UserRole =
   | 'super_admin'
   | 'admin'
@@ -40,8 +42,13 @@ export type ApiErrorCode =
   | 'WORKFLOW_CONFLICT'
   | 'IDEMPOTENCY_KEY_REUSED'
   | 'RATE_LIMITED'
+  | 'EMAIL_DELIVERY_UNAVAILABLE'
+  | 'INVALID_VERIFICATION_CODE'
+  | 'VERIFICATION_EXPIRED'
+  | 'INVALID_SETUP_TOKEN'
 
 export interface UserSummary {
+  accountType: AccountType
   id: string
   email: string
   displayName: string
@@ -60,6 +67,7 @@ export interface AuthenticatedContext extends AuthSession {
 }
 
 export interface LoginRequest {
+  accountType?: AccountType
   email: string
   password: string
 }
@@ -77,3 +85,18 @@ export interface ApiErrorBody {
   requestId: string
   fieldErrors?: Record<string, string[]>
 }
+
+export interface SignupDetails {
+  accountType: AccountType
+  displayName: string
+  email: string
+  organizationName?: string
+}
+export interface SignupChallenge {
+  challengeId: string
+  message: string
+  expiresInSeconds: number
+  resendAfterSeconds: number
+}
+export interface SignupProof { setupToken: string; expiresInSeconds: number }
+export interface SignupCompletion { challengeId: string; setupToken: string; password: string }

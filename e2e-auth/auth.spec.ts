@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { capturedCode, verifiedAccount } from '../e2e-support/verification'
 
 test('real FastAPI registration, SSR, isolation, repeated and interrupted flows, login and revocation', async ({ page, browser }) => {
   const password = 'Isolated-test-password-927!'
@@ -14,12 +15,17 @@ test('real FastAPI registration, SSR, isolation, repeated and interrupted flows,
   await page.goBack()
   await expect(page).toHaveURL(/\/register$/)
   await page.getByLabel('Full name').fill('Alpha Owner')
-  await page.getByLabel('Organization', { exact: true }).fill('Alpha Workspace')
-  await page.getByLabel('Work email').fill(email)
-  await page.getByLabel(/^Password/).fill(password)
+  await page.getByRole('radio', { name: /Organization/ }).check()
+  await page.getByLabel('Organization name').fill('Alpha Workspace')
+  await page.getByLabel('Email').fill(email)
   let submissions = 0
-  page.on('request', request => { if (request.url().endsWith('/auth/register') && request.method() === 'POST') submissions++ })
+  page.on('request', request => { if (request.url().endsWith('/auth/signup/start') && request.method() === 'POST') submissions++ })
   await page.locator('form').evaluate((form: HTMLFormElement) => { form.requestSubmit(); form.requestSubmit() })
+  await expect(page.getByLabel('Verification code')).toBeVisible()
+  await page.getByLabel('Verification code').fill(capturedCode(email))
+  await page.getByRole('button', { name: 'Verify email', exact: true }).click()
+  await page.getByLabel(/^Password/).fill(password)
+  await page.getByRole('button', { name: 'Create workspace', exact: true }).click()
   await expect(page).toHaveURL(`${origin}/app`)
   expect(submissions).toBe(1)
   await expect(page.getByRole('heading', { name: 'Authentication preview' })).toBeVisible()
@@ -52,9 +58,7 @@ test('real FastAPI registration, SSR, isolation, repeated and interrupted flows,
   await expect(page).toHaveURL(`${origin}/app`)
 
   const other = await browser.newContext({ baseURL: origin })
-  const second = await other.request.post('/api/v1/auth/register', { headers: { Origin: origin }, data: { displayName: 'Beta Owner', email: `beta-${email}`, password, organizationName: 'Beta Workspace' } })
-  expect(second.status()).toBe(201)
-  const secondSession = (await second.json()).data
+  const secondSession = await verifiedAccount(other.request, { accountType: 'organization', displayName: 'Beta Owner', email: `beta-${email}`, password, organizationName: 'Beta Workspace' })
   expect(secondSession.user.organizationId).not.toBe(session.user.organizationId)
   expect((await other.request.get(`/api/v1/organizations/${session.user.organizationId}`)).status()).toBe(404)
   expect((await page.request.get(`/api/v1/organizations/${secondSession.user.organizationId}`)).status()).toBe(404)
@@ -75,7 +79,8 @@ test('real FastAPI registration, SSR, isolation, repeated and interrupted flows,
   await expect(page.getByText(email)).toHaveCount(0)
   await page.goto('/app')
   await expect(page).toHaveURL(/\/login$/)
-  await page.getByLabel('Work email').fill(email)
+  await page.getByRole('radio', { name: /Organization/ }).check()
+  await page.getByLabel('Email').fill(email)
   await page.getByLabel(/^Password/).fill('Wrong-password-927!')
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(page.getByRole('alert').filter({ hasText: /credential|password|email/i })).toBeVisible()

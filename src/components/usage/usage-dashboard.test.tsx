@@ -14,38 +14,38 @@ function fixture(scope: 'me' | 'organization'): UsageSummary {
 beforeEach(() => { vi.resetAllMocks(); access.capabilities = ['usage:read', 'usage:organization:read']; vi.mocked(usageApi.summary).mockImplementation(async scope => fixture(scope)); vi.mocked(usageApi.history).mockResolvedValue(emptyHistory) })
 afterEach(cleanup)
 it('shows honest unavailable AI and payment states with personal scope by default', async () => {
-  render(<UsageDashboard/>)
+  render(<UsageDashboard accountType="organization"/>)
   await screen.findByText('997 remaining')
   expect(screen.getAllByText('Not available')).toHaveLength(5)
   expect(screen.getByText(/Payments are not configured/)).toBeTruthy()
-  expect(screen.getByText(/not a personal allocation/)).toBeTruthy()
+  expect(screen.getByText(/shared by your organization/)).toBeTruthy()
   expect(usageApi.summary).toHaveBeenCalledWith('me', expect.any(URLSearchParams), expect.any(AbortSignal))
 })
 it('never fetches without capability and never displays tenant controls to ordinary users', async () => {
   access.capabilities = []
-  const view = render(<UsageDashboard/>)
+  const view = render(<UsageDashboard accountType="organization"/>)
   expect(usageApi.summary).not.toHaveBeenCalled()
   access.capabilities = ['usage:read']
-  view.rerender(<UsageDashboard/>)
+  view.rerender(<UsageDashboard accountType="organization"/>)
   await screen.findByText('997 remaining')
   expect(screen.queryByRole('button', { name: 'Organization usage' })).toBeNull()
 })
 it('discards late personal responses and removes tenant data after permission revocation', async () => {
   let resolve!: (value: UsageSummary) => void
   vi.mocked(usageApi.summary).mockImplementationOnce(() => new Promise(done => { resolve = done }))
-  const view = render(<UsageDashboard/>)
+  const view = render(<UsageDashboard accountType="organization"/>)
   fireEvent.click(screen.getByRole('button', { name: 'Organization usage' }))
   await screen.findByRole('heading', { name: 'People & operations' })
   resolve({ ...fixture('me'), subscription: { ...fixture('me').subscription, plan: 'stale personal result' } })
   await waitFor(() => expect(screen.queryByText('stale personal result')).toBeNull())
   access.capabilities = ['usage:read']
-  view.rerender(<UsageDashboard/>)
+  view.rerender(<UsageDashboard accountType="organization"/>)
   expect(screen.queryByRole('heading', { name: 'People & operations' })).toBeNull()
   await screen.findByText('997 remaining')
 })
 it('reports outage without fake zeroes and retries explicitly', async () => {
   vi.mocked(usageApi.summary).mockRejectedValueOnce(new Error('offline'))
-  render(<UsageDashboard/>)
+  render(<UsageDashboard accountType="organization"/>)
   await screen.findByRole('alert')
   expect(screen.queryByText('997 remaining')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: 'Refresh usage' }))
@@ -53,7 +53,7 @@ it('reports outage without fake zeroes and retries explicitly', async () => {
 })
 it('drills a tenant group down using bound account, operation and state filters', async () => {
   vi.mocked(usageApi.summary).mockImplementation(async scope => ({ ...fixture(scope), groups: scope === 'organization' ? [{ userId: 'synthetic-user', operation: 'document_intake', meter: 'document_uploads', state: 'failed', events: 1, quantity: 1 }] : [] }))
-  render(<UsageDashboard/>)
+  render(<UsageDashboard accountType="organization"/>)
   fireEvent.click(screen.getByRole('button', { name: 'Organization usage' }))
   fireEvent.click(await screen.findByRole('button', { name: /Account synthetic-user/ }))
   await waitFor(() => {
@@ -64,4 +64,12 @@ it('drills a tenant group down using bound account, operation and state filters'
   })
   fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }))
   await waitFor(() => expect(vi.mocked(usageApi.history).mock.calls.at(-1)![1].has('userId')).toBe(false))
+})
+
+it('uses server individual kind for workspace allowance and hides organization scope', async () => {
+  render(<UsageDashboard accountType="individual"/>)
+  await screen.findByText('997 remaining')
+  expect(screen.getByText(/belongs to your private workspace/)).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'Organization usage' })).toBeNull()
+  expect(usageApi.summary).toHaveBeenCalledWith('me', expect.any(URLSearchParams), expect.any(AbortSignal))
 })

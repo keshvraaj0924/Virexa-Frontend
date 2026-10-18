@@ -12,6 +12,9 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      VIREXA_AUTH_CANDIDATE: '1'
+      NEXT_PUBLIC_API_URL: /api/v1
     steps:
       - name: Checkout
         uses: actions/checkout@v4
