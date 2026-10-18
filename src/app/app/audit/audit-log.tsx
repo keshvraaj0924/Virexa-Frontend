@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { AccessDenied, useAccess } from '@/components/access/access-provider'
 import { AUDIT_ACTIONS, AUDIT_OUTCOMES, fetchTenantAudit, type AuditAction, type AuditOutcome, type TenantAuditPage } from '@/lib/api/tenant-audit'
-const short = (id: string | null) => id ? `${id.slice(0, 8)}…${id.slice(-6)}` : 'System'
+const short = (id: string | null) => id ? `${id.slice(0, 8)}…${id.slice(-6)}` : 'Not available'
 export default function AuditLog() {
   const access = useAccess()
   const allowed = access?.allows('audit:read') ?? false

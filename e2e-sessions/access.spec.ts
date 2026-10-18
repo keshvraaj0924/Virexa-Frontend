@@ -61,5 +61,5 @@ test('permissions outage fails closed and recovers without offering fake adminis
   await expect(page.getByRole('link', { name: 'Users & Access', exact: true })).toHaveCount(0)
   await page.unroute('**/api/v1/me/permissions')
   await page.getByRole('button', { name: 'Check access again' }).click()
-  await expect(page.getByText('Allowed', { exact: true })).toHaveCount(8)
+  await expect(page.getByText('Allowed', { exact: true })).toHaveCount(9)
 })

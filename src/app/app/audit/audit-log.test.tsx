@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import AuditLog from './audit-log'
 import { fetchTenantAudit } from '@/lib/api/tenant-audit'
 const access = vi.hoisted(() => ({ allowed: true }))
@@ -45,4 +45,26 @@ it('uses cursor history and resets pagination when filters change', async () => 
   await screen.findByText('0 events on page 1')
   fireEvent.change(screen.getByLabelText('Action'), { target: { value: 'auth.login' } })
   await waitFor(() => expect(fetchTenantAudit).toHaveBeenLastCalledWith({ cursor: undefined, action: 'auth.login', outcome: undefined }, expect.any(AbortSignal)))
+})
+it('ignores an older successful response after filters change', async () => {
+  let finish!: (value: typeof empty) => void
+  vi.mocked(fetchTenantAudit).mockImplementationOnce(() => new Promise(resolve => { finish = resolve })).mockResolvedValueOnce({ ...empty, coverage: { ...empty.coverage, notice: 'Current filtered coverage' } })
+  render(<AuditLog />)
+  const signal = vi.mocked(fetchTenantAudit).mock.calls[0][1]!
+  fireEvent.change(screen.getByLabelText('Outcome'), { target: { value: 'failed' } })
+  await screen.findByText('Current filtered coverage')
+  await act(async () => finish({ ...empty, coverage: { ...empty.coverage, notice: 'Stale response' } }))
+  expect(signal.aborted).toBe(true)
+  expect(screen.queryByText('Stale response')).toBeNull()
+  expect(screen.getByText('Current filtered coverage')).toBeTruthy()
+})
+it('ignores a pending request rejection after unmount', async () => {
+  let fail!: (error: Error) => void
+  vi.mocked(fetchTenantAudit).mockImplementationOnce(() => new Promise((_, reject) => { fail = reject }))
+  const view = render(<AuditLog />)
+  const signal = vi.mocked(fetchTenantAudit).mock.calls[0][1]!
+  view.unmount()
+  await act(async () => fail(new Error('late private failure')))
+  expect(signal.aborted).toBe(true)
+  expect(screen.queryByRole('alert')).toBeNull()
 })
