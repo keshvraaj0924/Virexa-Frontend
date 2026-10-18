@@ -33,7 +33,7 @@ The same-origin proxy permits exactly four GET usage endpoints behind the featur
 flag, drops tenant/role hints, and forwards `userId` only for tenant history. Upstream
 redirects are rejected and responses are private/no-store. The backend remains the
 authority for authenticated account, current tenant, resource scope and current role.
-Malformed/mismatched responses fail closed. A network failure never creates totals.
+Malformed responses and mismatched scope responses fail closed. A network failure never creates totals.
 
 Reporting windows are bounded to 7, 30 or 90 days. Each view uses fixed timezone-aware
 start/end values; cursor history preserves those bounds and filters. Pagination
@@ -53,6 +53,10 @@ status drilldown; quantities are not combined across meters. Dates display UTC.
   isolated CI database; rendered screenshots precede that seed. All screenshot accounts
   and documents are explicitly synthetic fixtures, not production activity.
 - Existing auth, intake and session suites remain enabled and pinned to the same backend.
+- Browser assertions must scope alerts to the tested feature or named region (for example,
+  `page.locator('.vx-usage').getByRole('alert')`). Next.js also renders its own global
+  route-announcer alert; an unscoped `page.getByRole('alert')` is ambiguous. Give selects
+  explicit accessible names and scroll to the top before full-page screenshot capture.
 - Run lint, typecheck, unit tests, build and all relevant browser suites before release.
 
 No merge or deployment is part of this change. Meter availability and commercial

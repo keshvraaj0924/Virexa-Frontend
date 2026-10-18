@@ -46,3 +46,10 @@
 .vx-workspace .vx-usage-message { padding: 22px; border: 1px solid #e8d2d0; background: #fff8f7; border-radius: 12px; }
 @media(max-width: 1050px) { .vx-workspace .vx-usage-meters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .vx-workspace .vx-usage-plan { grid-template-columns: 1fr; } }
 @media(max-width: 540px) { .vx-workspace .vx-usage { gap: 18px; } .vx-workspace .vx-usage-scope { width: 100%; } .vx-workspace .vx-usage-scope button { padding: 10px; font-size: 12px; gap: 6px; flex: 1; } .vx-workspace .vx-usage-meter { padding: 17px; } .vx-workspace .vx-usage-meter > strong { font-size: 20px; } .vx-workspace .vx-usage-plan, .vx-workspace .vx-usage-panel { padding: 20px; } .vx-workspace .vx-usage-history li { flex-direction: column; gap: 8px; } }
+.vx-workspace .vx-usage .text-button { border: 1px solid #d7e1f6; border-radius: 9px; background: #fff; padding: 10px 14px; color: #3c609a; font: inherit; font-size: 12px; cursor: pointer; }
+.vx-workspace .vx-usage .text-button:hover:not(:disabled) { background: #f4f7ff; border-color: #99b8eb; }
+.vx-workspace .vx-usage .text-button:disabled { background: #f7f9fc; color: #687b97; }
+.vx-workspace .vx-usage-allowance progress { appearance: none; border: 0; border-radius: 5px; overflow: hidden; background: #e5ecfa; }
+.vx-workspace .vx-usage-allowance progress::-webkit-progress-bar { background: #e5ecfa; }
+.vx-workspace .vx-usage-allowance progress::-webkit-progress-value { background: linear-gradient(90deg, #3fa4ec, #7671e8); border-radius: 5px; }
+.vx-workspace .vx-usage-allowance progress::-moz-progress-bar { background: #487fdd; }

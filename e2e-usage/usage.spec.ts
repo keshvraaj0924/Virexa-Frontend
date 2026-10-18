@@ -2,6 +2,8 @@ import { test, expect, type BrowserContext, type Page } from '@playwright/test'
 import { execFileSync } from 'node:child_process'
 import path from 'node:path'
 const origin = 'http://127.0.0.1:3000'
+// Scope errors to the feature: Next also renders a global route-announcer alert.
+const usageAlert = (page: Page) => page.locator('.vx-usage').getByRole('alert')
 function seed(email: string, action: string, ...args: string[]) {
   execFileSync('python', [path.resolve('e2e-usage/seed.py'), email, action, ...args], { cwd: path.resolve('.auth-backend'), stdio: 'pipe' })
 }
@@ -45,19 +47,19 @@ test('real tenant-scoped metering, retry exactly once, entitlement, history and 
   await page.goto('/app/usage'); await expect(page.getByRole('heading', { name: 'Your activity', exact: true })).toBeVisible()
   await expect(page.getByRole('article', { name: 'Document uploads' })).toContainText('2')
   await expect(page.getByText('Payments are not configured.', { exact: false })).toBeVisible()
-  await page.setViewportSize({ width: 1440, height: 1100 }); await page.screenshot({ path: 'test-results/usage-personal-desktop.png', fullPage: true })
+  await page.setViewportSize({ width: 1440, height: 1100 }); await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: 'test-results/usage-personal-desktop.png', fullPage: true })
   await page.getByRole('button', { name: 'Organization usage' }).click()
   await expect(page.getByRole('article', { name: 'Document uploads' })).toContainText('3')
   await expect(page.getByRole('heading', { name: 'People & operations' })).toBeVisible()
-  await page.screenshot({ path: 'test-results/usage-organization-desktop.png', fullPage: true })
+  await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: 'test-results/usage-organization-desktop.png', fullPage: true })
   await page.getByRole('button', { name: new RegExp(`Account ${memberOwn.userId}`) }).click()
   await expect(page.locator('.vx-usage-history li')).toHaveCount(1)
   await expect(page.locator('.vx-usage-history')).toContainText(memberOwn.userId)
   await page.setViewportSize({ width: 390, height: 844 }); expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await page.screenshot({ path: 'test-results/usage-organization-mobile.png', fullPage: true })
+  await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: 'test-results/usage-organization-mobile.png', fullPage: true })
   await page.getByRole('button', { name: 'My usage', exact: true }).click()
   await expect(page.locator('.vx-usage-history li')).toHaveCount(2)
-  await page.screenshot({ path: 'test-results/usage-personal-mobile.png', fullPage: true })
+  await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: 'test-results/usage-personal-mobile.png', fullPage: true })
   // Synthetic failure events exercise pagination only, never presented as production usage.
   seed(email, 'history'); await page.getByRole('button', { name: 'Refresh usage' }).click()
   await expect(page.locator('.vx-usage-history li')).toHaveCount(25)
@@ -76,7 +78,7 @@ test('real tenant-scoped metering, retry exactly once, entitlement, history and 
 test('usage outage never manufactures totals and explicit refresh recovers', async ({ page, context }) => {
   await register(context, `usage-outage-${Date.now()}@example.com`, 'Usage Outage')
   await page.route('**/api/v1/usage/me?*', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }))
-  await page.goto('/app/usage'); await expect(page.getByRole('alert')).toContainText('No totals are shown')
+  await page.goto('/app/usage'); await expect(usageAlert(page)).toContainText('No totals are shown')
   await expect(page.getByRole('article', { name: 'Document uploads' })).toHaveCount(0)
   await page.unroute('**/api/v1/usage/me?*'); await page.getByRole('button', { name: 'Refresh usage' }).click()
   await expect(page.getByRole('article', { name: 'Document uploads' })).toContainText('0')
