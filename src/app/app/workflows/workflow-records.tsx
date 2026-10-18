@@ -74,7 +74,7 @@ export default function WorkflowRecords({ userId }: { userId: string }) {
       } catch (cause) {
         if (request !== epoch.current) return
         // Retain both the exact payload and key for every uncertain retry.
-        if (cause instanceof ApiError && cause.status >= 400 && cause.status < 500 && cause.status !== 408) { pendingCreate.current = null; setUncertain(false) }
+        if (cause instanceof ApiError && ([400, 422].includes(cause.status) || cause.code === 'IDEMPOTENCY_KEY_REUSED')) { pendingCreate.current = null; setUncertain(false) }
         else setUncertain(true)
         throw cause
       }

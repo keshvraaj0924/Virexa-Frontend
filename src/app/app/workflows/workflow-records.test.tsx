@@ -85,3 +85,15 @@ it('resets uncertain creation when the session user changes', async () => {
   expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('')
   expect(screen.queryByRole('button', { name: 'Retry same creation' })).toBeNull()
 })
+it('retains the creation key when an uncertain write replay is rate-limited', async () => {
+  vi.mocked(workflowsApi.create).mockRejectedValueOnce(new Error('lost response')).mockRejectedValueOnce(new ApiError({ status: 429, code: 'RATE_LIMITED', message: 'Later', requestId: 'id' })).mockResolvedValueOnce(wrap(record))
+  render(<WorkflowRecords userId="owner" />); await screen.findByText('Synthetic review')
+  fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Safe retry' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create record' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Retry same creation' }))
+  await waitFor(() => expect(workflowsApi.create).toHaveBeenCalledTimes(2))
+  fireEvent.click(await screen.findByRole('button', { name: 'Retry same creation' }))
+  await waitFor(() => expect(workflowsApi.create).toHaveBeenCalledTimes(3))
+  const calls = vi.mocked(workflowsApi.create).mock.calls
+  expect(calls[1]).toEqual(calls[0]); expect(calls[2]).toEqual(calls[0])
+})
