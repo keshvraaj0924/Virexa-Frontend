@@ -39,3 +39,16 @@ button, input { font: inherit; }
 .vx-audit .text-button { padding: .65rem .9rem; border: 1px solid #cbd5e1; border-radius: .5rem; color: #24466c; background: #f8fafc; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .vx-audit .text-button:hover:not(:disabled) { background: #eef5ff; border-color: #93bce9; }
 .vx-audit .text-button:focus-visible, .vx-audit .audit-table-wrap:focus-visible { outline: 2px solid #418fde; outline-offset: 3px; }
+
+/* Workflow records: readable forms and status definitions, with no execution UI. */
+.workflow-create .workflow-form label { display: grid; gap: 8px; font-size: 13px; font-weight: 600; min-width: 0; }
+.workflow-create .workflow-form select, .workflow-toolbar select { min-height: 42px; border: 1px solid var(--virexa-border); border-radius: 10px; background: #fbfcfe; padding: 8px 12px; color: var(--virexa-ink); }
+.workflow-create .workflow-form p { grid-column: 1 / -1; font-size: 14px; line-height: 1.6; color: #526174; }
+.workflow-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.workflow-toolbar label { display: grid; gap: 6px; font-size: 13px; }
+.workflow-card h3, .workflow-card p { overflow-wrap: anywhere; }
+.workflow-card > p, .workflow-heading p, .workflow-create .panel-heading p { font-size: 14px; line-height: 1.6; }
+.workflow-card .text-button, .workflow-toolbar .text-button, .workflow-create .text-button, .workflow-load-more { border: 1px solid #dbe5ef; background: #fff; color: #245f9c; border-radius: 8px; padding: 10px 14px; font-size: 13px; cursor: pointer; }
+.workflow-load-more { margin: 0 24px 24px; }
+.workflow-form button:disabled, .workflow-toolbar button:disabled, .workflow-card button:disabled { opacity: .55; cursor: not-allowed; }
+.workflow-form :focus-visible, .workflow-toolbar :focus-visible, .workflow-card button:focus-visible, .workflow-load-more:focus-visible { outline: 3px solid #418fde; outline-offset: 3px; }

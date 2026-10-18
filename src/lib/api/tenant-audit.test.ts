@@ -19,3 +19,10 @@ it('makes a bounded read with no client tenant or actor selector', async () => {
   expect(fetch.mock.calls[0][0]).toBe('http://localhost:4000/api/v1/audit/events?limit=50&action=auth.login&outcome=succeeded&cursor=opaque')
   expect(fetch.mock.calls[0][1].method).toBe('GET')
 })
+it('accepts recorded workflow lifecycle events and their forward-only coverage', () => {
+  const events = ['workflow.created', 'workflow.updated'].map(action => ({ ...data.events[0], action, resourceType: 'workflow', resourceId: id }))
+  const parsed = parseTenantAudit({ ...data, events, coverage: { ...data.coverage, actions: ['workflow.created', 'workflow.updated'] } })
+  expect(parsed.events.map(event => event.action)).toEqual(['workflow.created', 'workflow.updated'])
+  expect(parsed.events.every(event => event.resourceType === 'workflow')).toBe(true)
+  expect(JSON.stringify(parsed)).not.toContain('NEVER_RENDER')
+})

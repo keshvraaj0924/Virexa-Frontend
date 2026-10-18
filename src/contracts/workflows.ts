@@ -35,3 +35,21 @@ export interface WorkflowListResponse {
   items: Workflow[]
   nextCursor: string | null
 }
+
+/** Validate untrusted record responses before rendering status-dependent controls. */
+export function parseWorkflow(value: unknown): Workflow {
+  if (!value || typeof value !== 'object') throw new Error('Invalid workflow record')
+  const record = value as Record<string, unknown>
+  if (!['id', 'organizationId', 'createdByUserId', 'name', 'createdAt', 'updatedAt'].every(key => typeof record[key] === 'string' && (record[key] as string).length > 0)
+    || !(record.description === null || typeof record.description === 'string')
+    || !WORKFLOW_STATUSES.includes(record.status as WorkflowStatus)
+    || !Number.isSafeInteger(record.version) || (record.version as number) < 1
+    || !Number.isFinite(Date.parse(record.createdAt as string)) || !Number.isFinite(Date.parse(record.updatedAt as string))) throw new Error('Invalid workflow record')
+  return value as Workflow
+}
+export function parseWorkflowList(value: unknown): WorkflowListResponse {
+  if (!value || typeof value !== 'object') throw new Error('Invalid workflow list')
+  const list = value as Record<string, unknown>
+  if (!Array.isArray(list.items) || list.items.length > 100 || !(list.nextCursor === null || typeof list.nextCursor === 'string')) throw new Error('Invalid workflow list')
+  return { items: list.items.map(parseWorkflow), nextCursor: list.nextCursor as string | null }
+}
