@@ -1,29 +1,31 @@
 import Link from 'next/link'
-import { NAVIGATION } from '@/contracts'
-import { getServerSession } from '@/lib/auth/server'
+import { ArrowRight, Building2, Layers3, LockKeyhole, ShieldCheck, UserRound } from 'lucide-react'
+import { getServerSession, getServerEffectivePermissions } from '@/lib/auth/server'
+import { SilkWave } from '@/components/visual/silk-wave'
 import WorkflowPanel from './workflows'
 
 export default async function AppShellPage() {
   const session = await getServerSession()
   if (!session) return null
-  const navigation = NAVIGATION.filter((item) => item.roles.includes(session.user.role))
-
-  return (
-    <main className="app-layout">
-      <aside className="app-sidebar" aria-label="Application navigation">
-        <Link href="/" className="sidebar-brand"><span className="brand-mark">V</span><span>Virexa</span></Link>
-        <div className="sidebar-label">Workspace</div>
-        <nav>{navigation.map((item, index) => <Link className={index === 0 ? 'nav-item active' : 'nav-item'} key={item.href} href={item.href}>{item.label}</Link>)}</nav>
-        <div className="sidebar-footer"><div className="account-avatar">{session.user.displayName.slice(0, 1).toUpperCase()}</div><div><strong>{session.user.displayName}</strong><small>{session.user.organizationName}</small></div></div>
-      </aside>
-      <section className="app-content">
-        <header className="app-header"><div><span className="eyebrow">OVERVIEW</span><h1>Dashboard</h1></div><div className="header-actions"><span className="workspace-pill">{session.user.organizationName}</span><Link href="/" className="header-link">View site</Link></div></header>
-        <section className="dashboard-panel">
-          <div className="panel-heading"><div><span className="eyebrow">SESSION</span><h2>Workspace ready</h2></div><span className="status-chip">Authenticated</span></div>
-          <div className="activity-row"><div><strong>{session.user.displayName}</strong><span>{session.user.email}</span></div><span>{session.user.role}</span></div>
-        </section>
-        <WorkflowPanel role={session.user.role} />
-      </section>
-    </main>
-  )
+  const candidate = process.env.VIREXA_AUTH_CANDIDATE === '1'
+  const intake = candidate && process.env.VIREXA_DOCUMENT_INTAKE === '1'
+  const sessions = candidate && process.env.VIREXA_SESSION_CONTROLS === '1'
+  const permissions = candidate ? await getServerEffectivePermissions() : null
+  const canReadDocuments = !candidate || (intake && !!permissions?.capabilities.includes('document:read'))
+  const user = session.user
+  return <main className="workspace-page"><section className="app-content">
+    <header className="app-header"><div><span className="eyebrow">YOUR WORKSPACE / OVERVIEW</span><h1>Dashboard</h1></div><div className="header-actions"><span className="workspace-pill">{user.organizationName}</span></div></header>
+    <section className="vx-dashboard-welcome"><SilkWave/><span className="vx-section-kicker">A LITTLE CLARITY GOES A LONG WAY</span><h2>Welcome back, <span>{user.displayName.split(' ')[0]}.</span></h2><p>Your operations, all in one place.</p></section>
+    <section className="vx-overview-grid" aria-label="Workspace overview">
+      <article className="vx-overview-card"><span className="vx-overview-icon"><Building2 size={21}/></span><div><p>{user.accountType === 'individual' ? 'Individual workspace' : user.accountType === 'organization' ? 'Organization' : 'Workspace'}</p><strong>{user.organizationName}</strong><small>Your connected workspace</small></div></article>
+      <article className="vx-overview-card"><span className="vx-overview-icon"><ShieldCheck size={21}/></span><div><p>Session status</p><strong>Authenticated</strong><small>Signed in and ready</small></div></article>
+      <article className="vx-overview-card"><span className="vx-overview-icon"><UserRound size={21}/></span><div><p>Your access</p><strong>{user.role.replaceAll('_', ' ')}</strong><small>Resource checks apply to every request</small></div></article>
+    </section>
+    {candidate ? <>
+      <div className="vx-dashboard-grid"><section className="vx-dashboard-panel" aria-label="Operations overview"><header><h3>Operations overview</h3><span className="vx-live-pill"><i/> Workspace ready</span></header><div className="vx-empty-operations"><Layers3/><strong>A clear space for what comes next.</strong><p>{canReadDocuments ? 'Your private intake workspace is ready. Open Documents to review records and see the actions available to you.' : 'Your document and workflow activity will appear here when these services are connected.'}</p></div></section>
+      <section className="vx-dashboard-panel" aria-label="Your workspace"><header><h3>Your workspace</h3><LockKeyhole size={14} color="#9797b2"/></header><div className="vx-workspace-detail"><UserRound/><div><small>Signed in as</small><strong>{user.displayName}</strong></div></div><div className="vx-workspace-detail"><Building2/><div><small>Email</small><strong>{user.email}</strong></div></div><div className="vx-workspace-detail"><ShieldCheck/><div><small>Access boundary</small><strong>{user.accountType === 'individual' ? 'Your private workspace' : 'Your organization'}</strong></div></div></section></div>
+      <section className="vx-workspace-note" aria-label="Authentication preview"><h2 style={{fontSize:11,fontWeight:550,margin:'0 0 3px'}}>Authentication preview</h2>{sessions ? `Authentication${intake ? ', private document intake' : ''} and active-session controls are connected. ${intake ? 'Scanning, extraction' : 'Documents'}, workflows, user management, audit logs and other security settings remain unavailable.` : intake ? 'Authentication and private document intake are connected. Scanning, extraction, workflows, user management, audit logs and security settings remain unavailable.' : 'Your session is connected to the Python authentication candidate. Documents, workflows, user management, audit logs and security settings are unavailable in this preview.'}</section>
+    </> : <WorkflowPanel role={user.role}/>}
+    <section className="vx-dashboard-banner"><SilkWave/><div><h3>Less document chaos. More possibility.</h3><p>Keep your people at the center of every decision.</p></div><Link href={canReadDocuments ? '/app/documents' : '/app/access'}>{canReadDocuments ? 'Open documents' : 'Review your access'}<ArrowRight size={14}/></Link></section>
+  </section></main>
 }

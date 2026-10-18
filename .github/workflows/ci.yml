@@ -12,18 +12,39 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      VIREXA_AUTH_CANDIDATE: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
       - name: Typecheck
         run: npm run typecheck
       - name: Test
         run: npm test
       - name: Build
+        env:
+          NEXT_PUBLIC_API_URL: /api/v1
         run: npm run build
+
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Browser regression tests
+        run: npm run test:e2e
+      - name: Save rendered screenshots and test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-results
+          path: test-results/
+          retention-days: 7

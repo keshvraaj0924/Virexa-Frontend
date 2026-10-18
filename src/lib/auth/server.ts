@@ -1,3 +1,5 @@
+import { parseEffectivePermissions } from '@/contracts/capabilities'
+import { candidateOrigin } from './candidate-config'
 import { headers } from 'next/headers'
 import type { ApiSuccess } from '@/contracts/api'
 import type { AuthenticatedContext, AuthSession } from '@/contracts/auth'
@@ -9,14 +11,24 @@ async function authenticatedServerRequest<T>(path: string): Promise<T | null> {
   const cookie = requestHeaders.get('cookie')
   if (!cookie) return null
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { Cookie: cookie, 'X-Request-ID': crypto.randomUUID() },
-    cache: 'no-store',
-  })
-  if (!response.ok) return null
+  const candidate = process.env.VIREXA_AUTH_CANDIDATE === '1'
+  const origin = candidate ? candidateOrigin() : null
+  if (candidate && !origin) return null
+  try {
+    const response = await fetch(candidate ? new URL(`/api/v1${path}`, origin!) : `${API_BASE_URL}${path}`, {
+      headers: { Cookie: cookie, 'X-Request-ID': crypto.randomUUID() },
+      cache: 'no-store',
+      redirect: 'manual',
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!response.ok) return null
 
-  const payload = await response.json() as ApiSuccess<T>
-  return payload.data
+    const payload = await response.json() as ApiSuccess<T>
+    return payload.data ?? null
+  } catch {
+    // Fail closed without exposing upstream infrastructure or cookie details.
+    return null
+  }
 }
 
 export async function getServerSession(): Promise<AuthSession | null> {
@@ -25,4 +37,9 @@ export async function getServerSession(): Promise<AuthSession | null> {
 
 export async function getServerAuthenticatedContext(): Promise<AuthenticatedContext | null> {
   return authenticatedServerRequest<AuthenticatedContext>('/me')
+}
+
+
+export async function getServerEffectivePermissions() {
+  return parseEffectivePermissions(await authenticatedServerRequest<unknown>('/me/permissions'))
 }

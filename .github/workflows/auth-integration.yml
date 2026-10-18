@@ -1,0 +1,87 @@
+name: Real FastAPI browser integration
+on:
+  pull_request:
+  push:
+    branches: ['feat/real-auth-browser-integration']
+permissions:
+  contents: read
+jobs:
+  real-auth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: virexa_test
+          POSTGRES_PASSWORD: isolated-ci-only
+          POSTGRES_DB: virexa_auth_browser
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U virexa_test -d virexa_auth_browser"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      ENVIRONMENT: test
+      ALLOW_LEGACY_REGISTRATION: 'false'
+      SIGNUP_EMAIL_DELIVERY: local_smtp
+      SIGNUP_SMTP_PORT: '1025'
+      SIGNUP_CAPTURE_DIRECTORY: /tmp/virexa-synthetic-mail
+      DATABASE_URL: postgresql+asyncpg://virexa_test:isolated-ci-only@127.0.0.1:5432/virexa_auth_browser
+      ALLOWED_ORIGINS: http://127.0.0.1:3000
+      VIREXA_AUTH_CANDIDATE: '1'
+      AUTH_API_ORIGIN: http://127.0.0.1:4000
+      NEXT_PUBLIC_API_URL: /api/v1
+    steps:
+      - name: Checkout exact frontend head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Checkout reviewed public backend commit
+        uses: actions/checkout@v4
+        with:
+          repository: keshvraaj0924/Virexa-backend
+          ref: a37c6fd353d2c869e1cc91035210be5ddb70468d
+          path: .auth-backend
+          persist-credentials: false
+      - name: Verify immutable backend pin
+        run: test "$(git -C .auth-backend rev-parse HEAD)" = 'a37c6fd353d2c869e1cc91035210be5ddb70468d'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install backend and migrate isolated PostgreSQL 16
+        working-directory: .auth-backend
+        run: |
+          python -m pip install -e '.[dev]'
+          python -m alembic upgrade head
+          python tools/synthetic_signup_smtp.py 1025 "$SIGNUP_CAPTURE_DIRECTORY" > /tmp/virexa-synthetic-smtp.log 2>&1 &
+          python -m uvicorn app.main:create_app --factory --host 127.0.0.1 --port 4000 --no-access-log > /tmp/virexa-auth-service.log 2>&1 &
+      - name: Wait for actual database readiness
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4000/ready; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Real browser, proxy, FastAPI and PostgreSQL authentication
+        run: npx playwright test --config playwright.auth.config.ts
+
+      - name: Save visual review screenshots (no traces or cookies)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-visual-review
+          path: test-results/*.png
+          retention-days: 7
+
+      - name: Remove ephemeral synthetic email captures
+        if: always()
+        run: rm -rf -- "$SIGNUP_CAPTURE_DIRECTORY"

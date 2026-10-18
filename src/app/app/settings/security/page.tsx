@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { AccessDenied, useAccess } from '@/components/access/access-provider'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ActiveSession } from '../../../../contracts/auth'
 import { authApi, ApiRequestError } from '../../../../lib/api/auth'
 
@@ -10,6 +11,9 @@ function formatSessionTime(value: string): string {
 }
 
 export default function SecuritySettingsPage() {
+  const access = useAccess()
+  const canRead = access ? access.allows('session:read') : true
+  const canRevoke = access ? access.allows('session:revoke') : true
   const [sessions, setSessions] = useState<ActiveSession[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isRevoking, setIsRevoking] = useState(false)
@@ -17,60 +21,114 @@ export default function SecuritySettingsPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const loadSessions = useCallback(async () => {
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const busy = useRef(false)
+  const queuedRefresh = useRef(false)
+  const [refreshVersion, setRefreshVersion] = useState(0)
+  const generation = useRef(0)
+  const mounted = useRef(true)
+
+  const handleError = useCallback((requestError: unknown, fallback: string) => {
+    if (!mounted.current) return
+    if (requestError instanceof ApiRequestError && requestError.code === 'UNAUTHENTICATED') {
+      setSessions([])
+      window.location.replace('/login')
+      return
+    }
+    setError(requestError instanceof ApiRequestError ? requestError.message : fallback)
+  }, [])
+
+  const loadSessions = useCallback(async (cursor?: string) => {
+    if (!canRead) return
+    const currentGeneration = ++generation.current
     setIsLoading(true)
-    setError(null)
     try {
-      const response = await authApi.activeSessions()
-      setSessions(response.data)
-    } catch (requestError) {
-      setError(requestError instanceof ApiRequestError ? requestError.message : 'Unable to load active sessions.')
+      const response = await authApi.activeSessions(cursor)
+      if (!mounted.current || generation.current !== currentGeneration) return
+      setSessions(previous => cursor
+        ? [...previous, ...response.data.filter(item => !previous.some(existing => existing.id === item.id))]
+        : response.data)
+      setNextCursor(response.meta.pagination?.nextCursor ?? null)
     } finally {
-      setIsLoading(false)
+      if (mounted.current && generation.current === currentGeneration) setIsLoading(false)
+    }
+  }, [canRead])
+
+  const finishOperation = useCallback(() => {
+    busy.current = false
+    if (queuedRefresh.current && mounted.current) {
+      queuedRefresh.current = false
+      setRefreshVersion(version => version + 1)
     }
   }, [])
 
+  const refresh = useCallback(async (cursor?: string) => {
+    // A permission recovery can arrive before a retired inventory request settles.
+    // Queue a fresh first page instead of leaving the page permanently loading.
+    if (busy.current) { queuedRefresh.current = true; return }
+    busy.current = true
+    setError(null)
+    setMessage(null)
+    try { await loadSessions(cursor) }
+    catch (requestError) { handleError(requestError, 'Unable to load active sessions.') }
+    finally { finishOperation() }
+  }, [loadSessions, handleError, finishOperation])
+
   useEffect(() => {
-    void loadSessions()
-  }, [loadSessions])
+    mounted.current = true
+    if (canRead) void refresh()
+    else { generation.current += 1; setSessions([]); setNextCursor(null) }
+    return () => { mounted.current = false }
+  }, [refresh, canRead, refreshVersion])
 
   async function revokeSession(session: ActiveSession) {
+    if (busy.current || !canRevoke) return
+    busy.current = true
     setRevokingSessionId(session.id)
     setMessage(null)
     setError(null)
     try {
       await authApi.revokeSession(session.id)
+      if (!mounted.current) return
       if (session.current) {
-        window.location.assign('/login')
+        setSessions([])
+        window.location.replace('/login')
         return
       }
       setMessage('Session revoked.')
       await loadSessions()
     } catch (requestError) {
-      setError(requestError instanceof ApiRequestError ? requestError.message : 'Unable to revoke this session.')
+      handleError(requestError, 'Unable to revoke this session.')
     } finally {
-      setRevokingSessionId(null)
+      finishOperation()
+      if (mounted.current) setRevokingSessionId(null)
     }
   }
 
   async function revokeOtherSessions() {
+    if (busy.current || !canRevoke) return
+    busy.current = true
     setIsRevoking(true)
     setMessage(null)
     setError(null)
     try {
       const response = await authApi.revokeOtherSessions()
+      if (!mounted.current) return
       const count = response.data.revokedCount
       setMessage(count === 1 ? '1 other session was revoked.' : `${count} other sessions were revoked.`)
       await loadSessions()
     } catch (requestError) {
-      setError(requestError instanceof ApiRequestError ? requestError.message : 'Unable to revoke other sessions.')
+      handleError(requestError, 'Unable to revoke other sessions.')
     } finally {
-      setIsRevoking(false)
+      finishOperation()
+      if (mounted.current) setIsRevoking(false)
     }
   }
 
   const otherSessionCount = sessions.filter((session) => !session.current).length
-  const mutationInProgress = isRevoking || revokingSessionId !== null
+  const mutationInProgress = isRevoking || revokingSessionId !== null || isLoading
+
+  if (!canRead) return <main className="security-settings"><AccessDenied subject="Session controls"/></main>
 
   return (
     <main className="security-settings" aria-labelledby="security-settings-title">
@@ -86,9 +144,10 @@ export default function SecuritySettingsPage() {
           <h2 id="active-sessions-title">Active sessions</h2>
           <p>Only session metadata returned for your authenticated account is displayed.</p>
         </div>
+        <button type="button" onClick={() => void refresh()} disabled={mutationInProgress}>Refresh sessions</button>
         {isLoading ? <p role="status">Loading active sessions…</p> : null}
-        {!isLoading && sessions.length === 0 ? <p>No active sessions were returned.</p> : null}
-        {!isLoading && sessions.length > 0 ? (
+        {!isLoading && !error && sessions.length === 0 ? <p>No active sessions were returned.</p> : null}
+        {sessions.length > 0 ? (
           <div className="security-session-list">
             {sessions.map((session) => (
               <article className="security-session" key={session.id}>
@@ -102,7 +161,7 @@ export default function SecuritySettingsPage() {
                   <button
                     type="button"
                     onClick={() => void revokeSession(session)}
-                    disabled={mutationInProgress}
+                    disabled={mutationInProgress || !canRevoke}
                     aria-label={session.current ? 'Sign out this session' : 'Revoke this session'}
                   >
                     {revokingSessionId === session.id ? 'Revoking…' : session.current ? 'Sign out' : 'Revoke'}
@@ -112,20 +171,24 @@ export default function SecuritySettingsPage() {
             ))}
           </div>
         ) : null}
+        {nextCursor ? <button type="button" onClick={() => void refresh(nextCursor)} disabled={mutationInProgress}>Load more sessions</button> : null}
+        <p>{sessions.length} active {sessions.length === 1 ? 'session' : 'sessions'} shown.{nextCursor ? ' More sessions are available.' : ''}</p>
         {message ? <p role="status" className="security-success">{message}</p> : null}
         {error ? <p role="alert" className="security-error">{error}</p> : null}
       </section>
 
+      {!canRevoke && <p className="vx-access-denied">You can review sessions. Your current permissions do not allow revoking them.</p>}
       <section className="security-card" aria-labelledby="session-security-title">
         <div>
           <p className="eyebrow">Session security</p>
           <h2 id="session-security-title">Sign out other sessions</h2>
-          <p>Your current session stays active. {otherSessionCount} other active {otherSessionCount === 1 ? 'session is' : 'sessions are'} currently visible.</p>
+          <p>Your current session stays active. This signs out all other sessions, including those not yet loaded. {otherSessionCount} other active {otherSessionCount === 1 ? 'session is' : 'sessions are'} currently visible.</p>
         </div>
-        <button type="button" onClick={revokeOtherSessions} disabled={mutationInProgress || isLoading || otherSessionCount === 0}>
+        <button type="button" onClick={revokeOtherSessions} disabled={mutationInProgress || !canRevoke || (otherSessionCount === 0 && !nextCursor)}>
           {isRevoking ? 'Revoking…' : 'Sign out other sessions'}
         </button>
       </section>
     </main>
   )
 }
+

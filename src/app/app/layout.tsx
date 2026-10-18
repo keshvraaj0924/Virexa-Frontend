@@ -1,8 +1,13 @@
+import { WorkspaceFrame } from '@/components/workspace/workspace-frame'
 import { redirect } from 'next/navigation'
-import { getServerSession } from '@/lib/auth/server'
+import { AccessProvider } from '@/components/access/access-provider'
+import { getServerSession, getServerEffectivePermissions } from '@/lib/auth/server'
 
 export default async function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await getServerSession()
   if (!session) redirect('/login')
-  return children
+  const candidate = process.env.VIREXA_AUTH_CANDIDATE === '1'
+  const workspace = <WorkspaceFrame teamAdministration={process.env.VIREXA_TEAM_ADMINISTRATION === '1'} workflowRecords={process.env.VIREXA_WORKFLOW_RECORDS === '1'} auditEvents={process.env.VIREXA_AUDIT_EVENTS === '1'} usageAnalytics={process.env.VIREXA_USAGE_ANALYTICS === '1'} session={session} authOnly={process.env.VIREXA_AUTH_CANDIDATE === '1'} sessionControls={process.env.VIREXA_SESSION_CONTROLS === '1'} documentIntake={process.env.VIREXA_DOCUMENT_INTAKE === '1'}>{children}</WorkspaceFrame>
+  return candidate ? <AccessProvider initial={await getServerEffectivePermissions()}>{workspace}</AccessProvider> : workspace
 }
+
