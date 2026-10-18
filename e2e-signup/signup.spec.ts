@@ -44,6 +44,10 @@ test('[individual] individual verified signup, isolated workspace, truthful usag
   await expect(page.locator('.vx-workspace-tenant')).toContainText('Individual workspace')
   const individual = (await (await page.request.get('/api/v1/auth/session')).json()).data.user
   expect(individual.accountType).toBe('individual')
+  const audit = (await (await page.request.get('/api/v1/audit/events?action=auth.signup.completed')).json()).data
+  expect(audit.events).toHaveLength(1)
+  expect(audit.events[0].actorUserId).toBe(individual.id)
+  expect(audit.events[0].organizationId).toBe(individual.organizationId)
   const stored = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }))
   expect(JSON.stringify(stored)).not.toMatch(/setupToken|challengeId|verification|password/i)
   await page.goto('/app/usage')
@@ -94,6 +98,9 @@ test('[organization] organization UI verifies before password and keeps team wor
   await page.reload()
   await expect(page.locator('.vx-workspace-tenant')).toContainText('Organization workspace')
   await expect(page.locator('.vx-workspace-tenant')).toContainText('Small Startup')
+  const audit = (await (await page.request.get('/api/v1/audit/events?action=auth.signup.completed')).json()).data
+  expect(audit.events).toHaveLength(1)
+  expect(audit.events[0].metadata).toEqual({ outcome: 'succeeded' })
   await page.goto('/app/usage')
   await expect(page.getByText(/allowance is shared by your organization/)).toBeVisible()
   await page.getByRole('button', { name: 'Organization usage' }).click()

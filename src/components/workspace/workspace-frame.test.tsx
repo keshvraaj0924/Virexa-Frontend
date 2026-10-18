@@ -81,3 +81,13 @@ it('requires both explicit enablement and server capability for usage navigation
   view.rerender(<WorkspaceFrame authOnly usageAnalytics session={session}>Usage</WorkspaceFrame>)
   expect(screen.queryByRole('link', { name: 'Usage & plan' })).toBeNull()
 })
+it('uses effective audit permission rather than guessed role', () => {
+  capabilities.values = ['audit:read']
+  const view = render(<WorkspaceFrame authOnly session={session}>Audit</WorkspaceFrame>)
+  expect(screen.queryByRole('link', { name: 'Audit Log' })).toBeNull()
+  view.rerender(<WorkspaceFrame authOnly auditEvents session={session}>Audit</WorkspaceFrame>)
+  expect(screen.getByRole('link', { name: 'Audit Log' }).getAttribute('href')).toBe('/app/audit')
+  capabilities.values = []
+  view.rerender(<WorkspaceFrame authOnly auditEvents session={{ ...session, user: { ...session.user, role: 'admin' } }}>Audit</WorkspaceFrame>)
+  expect(screen.queryByRole('link', { name: 'Audit Log' })).toBeNull()
+})

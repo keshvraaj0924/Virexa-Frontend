@@ -29,6 +29,6 @@ it('presents read-only permissions and labels denied operations clearly', async 
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ data: { capabilities: ['session:read'] } })))
   render(<AccessProvider initial={null}><EffectivePermissions/></AccessProvider>)
   await screen.findByText('Allowed')
-  expect(screen.getAllByText('Restricted')).toHaveLength(7)
+  expect(screen.getAllByText('Restricted')).toHaveLength(8)
   expect(screen.queryByRole('button', { name: /save|edit/i })).toBeNull()
 })

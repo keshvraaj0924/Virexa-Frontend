@@ -41,7 +41,7 @@ test('current backend role controls UI, rejects stale writes, and keeps auditor 
   await expect(page.getByText('Current session', { exact: true })).toBeVisible()
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.getByRole('link', { name: 'Your access', exact: true }).click()
-  await expect(page.getByText('Allowed', { exact: true })).toHaveCount(4)
+  await expect(page.getByText('Allowed', { exact: true })).toHaveCount(5)
 
   // A later role change is reflected without a fresh login.
   setRole(email, 'operator')

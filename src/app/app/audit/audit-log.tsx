@@ -1,69 +1,44 @@
 'use client'
-
-import { useEffect, useMemo, useState } from 'react'
-import type { AuditEvent } from '@/contracts'
-import { fetchAuditEvents } from '@/lib/api/audit'
-
-function formatTimestamp(value: string) {
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
-}
-
-function shortId(value: string | null) {
-  if (!value) return 'System'
-  return value.length > 18 ? `${value.slice(0, 8)}…${value.slice(-6)}` : value
-}
-
+import { useEffect, useState } from 'react'
+import { AccessDenied, useAccess } from '@/components/access/access-provider'
+import { AUDIT_ACTIONS, AUDIT_OUTCOMES, fetchTenantAudit, type AuditAction, type AuditOutcome, type TenantAuditPage } from '@/lib/api/tenant-audit'
+const short = (id: string | null) => id ? `${id.slice(0, 8)}…${id.slice(-6)}` : 'System'
 export default function AuditLog() {
-  const [events, setEvents] = useState<AuditEvent[]>([])
+  const access = useAccess()
+  const allowed = access?.allows('audit:read') ?? false
+  const [action, setAction] = useState<AuditAction | ''>('')
+  const [outcome, setOutcome] = useState<AuditOutcome | ''>('')
+  const [cursors, setCursors] = useState<string[]>([])
+  const [revision, setRevision] = useState(0)
+  const [data, setData] = useState<TenantAuditPage | null>(null)
+  const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
+  const cursor = cursors.at(-1)
   useEffect(() => {
-    let active = true
-    fetchAuditEvents(100)
-      .then((items) => { if (active) setEvents(items) })
-      .catch((cause: unknown) => { if (active) setError(cause instanceof Error ? cause.message : 'Unable to load audit events.') })
-      .finally(() => { if (active) setLoading(false) })
-    return () => { active = false }
-  }, [])
-
-  const summary = useMemo(() => ({
-    actions: new Set(events.map((event) => event.action)).size,
-    resources: new Set(events.map((event) => event.resourceType)).size,
-    actors: new Set(events.map((event) => event.actorUserId).filter(Boolean)).size,
-  }), [events])
-
-  if (loading) return <section className="panel audit-state" aria-busy="true"><span className="audit-loader" /><div><strong>Loading governance trail</strong><p>Retrieving your organization’s latest auditable activity.</p></div></section>
-  if (error) return <section className="panel audit-state audit-error"><div><strong>Audit trail unavailable</strong><p role="alert">{error}</p></div></section>
-
-  return (
-    <>
-      <section className="audit-summary" aria-label="Audit summary">
-        <article className="audit-stat"><span>Captured events</span><strong>{events.length}</strong><small>Latest secured activity</small></article>
-        <article className="audit-stat"><span>Action types</span><strong>{summary.actions}</strong><small>Distinct operations</small></article>
-        <article className="audit-stat"><span>Resources</span><strong>{summary.resources}</strong><small>Protected resource types</small></article>
-        <article className="audit-stat"><span>Human actors</span><strong>{summary.actors}</strong><small>Authenticated identities</small></article>
-      </section>
-      <section className="panel audit-panel">
-        <div className="panel-heading audit-heading"><div><span className="eyebrow">TENANT AUDIT TRAIL</span><h2>Recent activity</h2><p>Immutable operational visibility for authorized organization administrators.</p></div><span className="workspace-pill">Last {events.length} events</span></div>
-        {events.length === 0 ? <div className="audit-empty"><strong>No audit events yet</strong><p>Auditable activity for this organization will appear here when recorded.</p></div> : (
-          <div className="audit-table-wrap">
-            <table className="audit-table">
-              <thead><tr><th>Time</th><th>Action</th><th>Resource</th><th>Actor</th><th>Request ID</th></tr></thead>
-              <tbody>{events.map((event) => (
-                <tr key={event.id}>
-                  <td><span className="audit-time">{formatTimestamp(event.createdAt)}</span></td>
-                  <td><span className="audit-action">{event.action}</span></td>
-                  <td><strong>{event.resourceType}</strong>{event.resourceId ? <small className="audit-subvalue">{shortId(event.resourceId)}</small> : null}</td>
-                  <td><span>{shortId(event.actorUserId)}</span></td>
-                  <td><code className="audit-request">{shortId(event.requestId)}</code></td>
-                </tr>
-              ))}</tbody>
-            </table>
-          </div>
-        )}
-      </section>
-    </>
-  )
+    const controller = new AbortController()
+    setData(null); setError(false)
+    if (!allowed) { setLoading(false); return () => controller.abort() }
+    setLoading(true)
+    fetchTenantAudit({ cursor, action: action || undefined, outcome: outcome || undefined }, controller.signal)
+      .then(value => { if (!controller.signal.aborted) setData(value) })
+      .catch(() => { if (!controller.signal.aborted) setError(true) })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    return () => controller.abort()
+  }, [allowed, cursor, action, outcome, revision])
+  if (!allowed) return <AccessDenied subject="Audit events" />
+  return <div className="vx-audit">
+    <section className="panel audit-panel">
+      <div className="panel-heading audit-heading"><div><span className="eyebrow">TENANT AUDIT TRAIL</span><h2>Recent activity</h2><p>Read-only records for your current workspace. Counts describe this page only.</p></div><button className="text-button" disabled={loading} onClick={() => { setCursors([]); setRevision(v => v + 1) }}>Refresh audit events</button></div>
+      <div className="vx-audit-filters">
+        <label>Action<select value={action} onChange={e => { setData(null); setAction(e.target.value as AuditAction | ''); setCursors([]) }}><option value="">All actions</option>{AUDIT_ACTIONS.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+        <label>Outcome<select value={outcome} onChange={e => { setData(null); setOutcome(e.target.value as AuditOutcome | ''); setCursors([]) }}><option value="">All outcomes</option>{AUDIT_OUTCOMES.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+      </div>
+      {loading ? <p className="audit-empty" role="status">Loading recorded activity…</p> : error ? <div className="audit-empty" role="alert"><strong>Audit trail unavailable</strong><p>No events are shown because current records could not be verified. Try refreshing.</p></div> : data ? <>
+        <aside className="vx-audit-coverage" aria-label="Recording coverage"><strong>Recording coverage</strong><p>{data.coverage.notice}</p><p>These operational records are not a tamper-proof archive or a compliance certification.</p></aside>
+        <p className="vx-audit-count" role="status">{data.events.length} events on page {cursors.length + 1}</p>
+        {data.events.length === 0 ? <div className="audit-empty"><strong>No matching recorded events</strong><p>No records match this page and these filters. This does not imply that no earlier activity occurred.</p></div> : <div className="audit-table-wrap"><table className="audit-table"><thead><tr><th>Time</th><th>Action</th><th>Outcome</th><th>Resource</th><th>Actor ID</th><th>Request ID</th></tr></thead><tbody>{data.events.map(event => <tr key={event.id}><td><time dateTime={event.createdAt}>{new Date(event.createdAt).toLocaleString()}</time></td><td>{event.action}</td><td>{event.outcome}</td><td>{event.resourceType}{event.resourceId && <small className="audit-subvalue" title={event.resourceId}>{short(event.resourceId)}</small>}</td><td title={event.actorUserId ?? undefined}>{short(event.actorUserId)}</td><td title={event.requestId}>{short(event.requestId)}</td></tr>)}</tbody></table></div>}
+        <div className="vx-audit-pagination"><button className="text-button" disabled={!cursors.length} onClick={() => { setData(null); setCursors(v => v.slice(0, -1)) }}>Newer events</button><button className="text-button" disabled={!data.nextCursor} onClick={() => { if (data.nextCursor) { setData(null); setCursors(v => [...v, data.nextCursor!]) } }}>Older events</button></div>
+      </> : null}
+    </section>
+  </div>
 }

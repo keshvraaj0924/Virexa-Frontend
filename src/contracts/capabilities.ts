@@ -2,7 +2,7 @@
 export const CAPABILITIES = [
   'document:read', 'document:create', 'document:upload',
   'session:read', 'session:revoke', 'organization:read',
-  'usage:read', 'usage:organization:read',
+  'audit:read', 'usage:read', 'usage:organization:read',
 ] as const
 export type Capability = typeof CAPABILITIES[number]
 export interface EffectivePermissions { capabilities: Capability[] }

@@ -88,3 +88,15 @@ it('keeps usage routes opt-in, read-only and scope-safe', async () => {
   expect((await proxyAuth(new Request('http://localhost/api/v1/usage/other'), ['usage', 'other'])).status).toBe(404)
   expect(upstreamFetch).toHaveBeenCalledTimes(4)
 })
+
+it('forwards only audit read queries with explicit enablement and drops tenant selectors', async () => {
+  const fetch = vi.fn().mockResolvedValue(new Response('{}')); vi.stubGlobal('fetch', fetch)
+  const url = 'http://localhost/api/v1/audit/events?limit=50&cursor=opaque&action=auth.login&outcome=succeeded&organizationId=other&actorUserId=other'
+  expect((await proxyAuth(new Request(url), ['audit', 'events'])).status).toBe(404)
+  vi.stubEnv('VIREXA_AUDIT_EVENTS', '1')
+  expect((await proxyAuth(new Request(url, { method: 'POST' }), ['audit', 'events'])).status).toBe(404)
+  expect((await proxyAuth(new Request(url), ['audit', 'events'])).status).toBe(200)
+  const target = fetch.mock.calls[0][0] as URL
+  expect([...target.searchParams.keys()]).toEqual(['limit', 'cursor', 'action', 'outcome'])
+  expect(fetch.mock.calls[0][1].cache).toBe('no-store')
+})
