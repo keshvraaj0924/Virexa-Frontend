@@ -12,7 +12,7 @@ import { VirexaMark } from '@/components/brand/virexa-mark'
 
 const icons = { dashboard: LayoutDashboard, documents: FileText, workflows: Workflow, users: Users, audit: ShieldCheck, settings: Settings }
 
-export function WorkspaceFrame({ session, children, authOnly = false, documentIntake = false, sessionControls = false, usageAnalytics = false, auditEvents = false, workflowRecords = false }: { session: AuthSession; children: ReactNode; authOnly?: boolean; documentIntake?: boolean; sessionControls?: boolean; usageAnalytics?: boolean; auditEvents?: boolean; workflowRecords?: boolean }) {
+export function WorkspaceFrame({ session, children, authOnly = false, documentIntake = false, sessionControls = false, usageAnalytics = false, auditEvents = false, workflowRecords = false, teamAdministration = false }: { session: AuthSession; children: ReactNode; authOnly?: boolean; documentIntake?: boolean; sessionControls?: boolean; usageAnalytics?: boolean; auditEvents?: boolean; workflowRecords?: boolean; teamAdministration?: boolean }) {
   const access = useAccess()
   const pathname = usePathname()
   const router = useRouter()
@@ -23,6 +23,7 @@ export function WorkspaceFrame({ session, children, authOnly = false, documentIn
   const navigation = NAVIGATION.filter(item => {
     if (!authOnly) return item.roles.includes(session.user.role)
     if (item.href === '/app') return true
+    if (item.href === '/app/users') return teamAdministration && (session.user.accountType === 'individual' || (access?.allows('organization:members:read') ?? false))
     if (item.href === '/app/workflows') return workflowRecords && (access?.allows('workflow:read') ?? false)
     if (item.href === '/app/audit') return auditEvents && (access?.allows('audit:read') ?? false)
     if (item.href === '/app/documents') return documentIntake && (access?.allows('document:read') ?? false)
@@ -67,7 +68,7 @@ export function WorkspaceFrame({ session, children, authOnly = false, documentIn
         <div className="vx-workspace-account"><span className="account-avatar">{session.user.displayName.slice(0, 1).toUpperCase()}</span><div><strong>{session.user.displayName}</strong><small>{authOnly ? 'Signed in' : session.user.role.replaceAll('_', ' ')}</small></div><button onClick={logout} disabled={pending} aria-label={pending ? 'Signing out' : 'Sign out'} title="Sign out"><LogOut size={18} /></button></div>
         {error && <p className="vx-logout-error" role="alert">{error}</p>}
       </aside>
-      <div id="workspace-content" className="vx-workspace-body" tabIndex={-1}><div className="vx-workspace-topbar"><span>Workspace <span aria-hidden="true">/</span> {pathname.includes('/documents') ? 'Documents' : pathname.includes('/security') ? 'Security' : pathname.includes('/usage') ? 'Usage & plan' : pathname.includes('/workflows') ? 'Workflow records' : pathname.includes('/audit') ? 'Audit Log' : pathname.includes('/access') ? 'Access' : 'Overview'}</span><span><ShieldCheck size={14} aria-hidden="true"/> Private workspace</span></div>{children}</div>
+      <div id="workspace-content" className="vx-workspace-body" tabIndex={-1}><div className="vx-workspace-topbar"><span>Workspace <span aria-hidden="true">/</span> {pathname.includes('/documents') ? 'Documents' : pathname.includes('/security') ? 'Security' : pathname.includes('/usage') ? 'Usage & plan' : pathname.includes('/users') ? 'Team & access' : pathname.includes('/workflows') ? 'Workflow records' : pathname.includes('/audit') ? 'Audit Log' : pathname.includes('/access') ? 'Access' : 'Overview'}</span><span><ShieldCheck size={14} aria-hidden="true"/> Private workspace</span></div>{children}</div>
     </div>
   )
 }

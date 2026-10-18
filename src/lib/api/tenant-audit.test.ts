@@ -26,3 +26,8 @@ it('accepts recorded workflow lifecycle events and their forward-only coverage',
   expect(parsed.events.every(event => event.resourceType === 'workflow')).toBe(true)
   expect(JSON.stringify(parsed)).not.toContain('NEVER_RENDER')
 })
+it('accepts documented member role events without exposing arbitrary metadata', () => {
+  const parsed = parseTenantAudit({ ...data, events: [{ ...data.events[0], action: 'organization.member.role_updated', resourceType: 'user' }], coverage: { ...data.coverage, actions: ['organization.member.role_updated'] } })
+  expect(parsed.events[0].action).toBe('organization.member.role_updated')
+  expect(JSON.stringify(parsed)).not.toContain('NEVER_RENDER')
+})

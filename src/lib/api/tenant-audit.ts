@@ -1,5 +1,5 @@
 import { apiRequest } from './client'
-export const AUDIT_ACTIONS = ['auth.signup.completed', 'auth.login', 'auth.logout', 'auth.session.revoked', 'workflow.created', 'workflow.updated', 'document.created', 'document.intake.completed', 'document.intake.failed', 'access.denied'] as const
+export const AUDIT_ACTIONS = ['auth.signup.completed', 'auth.login', 'auth.logout', 'auth.session.revoked', 'organization.member.role_updated', 'workflow.created', 'workflow.updated', 'document.created', 'document.intake.completed', 'document.intake.failed', 'access.denied'] as const
 export type AuditAction = typeof AUDIT_ACTIONS[number]
 export const AUDIT_OUTCOMES = ['succeeded', 'failed', 'denied'] as const
 export type AuditOutcome = typeof AUDIT_OUTCOMES[number]

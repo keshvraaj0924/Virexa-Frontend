@@ -3,6 +3,7 @@ export const CAPABILITIES = [
   'document:read', 'document:create', 'document:upload',
   'session:read', 'session:revoke', 'organization:read',
   'workflow:read', 'workflow:create', 'workflow:manage',
+  'organization:members:read', 'organization:members:manage', 'organization:hierarchy:read',
   'audit:read', 'usage:read', 'usage:organization:read',
 ] as const
 export type Capability = typeof CAPABILITIES[number]

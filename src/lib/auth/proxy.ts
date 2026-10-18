@@ -21,7 +21,8 @@ export async function proxyAuth(request: Request, segments: string[]) {
   const usageAllowed = process.env.VIREXA_USAGE_ANALYTICS === '1' && request.method === 'GET' && ['usage/me', 'usage/me/history', 'usage/organization', 'usage/organization/history'].includes(path)
   const auditAllowed = process.env.VIREXA_AUDIT_EVENTS === '1' && request.method === 'GET' && path === 'audit/events'
   const workflowsAllowed = process.env.VIREXA_WORKFLOW_RECORDS === '1' && ((path === 'workflows' && ['GET', 'POST'].includes(request.method)) || (/^workflows\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(path) && ['GET', 'PATCH'].includes(request.method)))
-  if (!workflowsAllowed && !allowed && !sessionsAllowed && !usageAllowed && !auditAllowed) return failure(404, 'FEATURE_UNAVAILABLE', 'This endpoint is unavailable in the authentication preview.')
+  const teamAllowed = process.env.VIREXA_TEAM_ADMINISTRATION === '1' && ((request.method === 'GET' && (['organization/members', 'organization/hierarchy'].includes(path) || /^organization\/members\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(path))) || (request.method === 'PATCH' && /^organization\/members\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/role$/i.test(path)))
+  if (!teamAllowed && !workflowsAllowed && !allowed && !sessionsAllowed && !usageAllowed && !auditAllowed) return failure(404, 'FEATURE_UNAVAILABLE', 'This endpoint is unavailable in the authentication preview.')
   const headers = new Headers({ Accept: 'application/json' })
   // Forward the original Origin, never synthesize trust from Host or forwarded headers.
   for (const name of ['origin', 'cookie', 'content-type', 'x-request-id', ...(workflowsAllowed ? ['idempotency-key'] : [])]) {
@@ -56,6 +57,10 @@ export async function proxyAuth(request: Request, segments: string[]) {
     if (workflowsAllowed && request.method === 'GET' && path === 'workflows') {
       const query = new URL(request.url).searchParams
       for (const key of ['limit', 'cursor', 'status']) { const value = query.get(key); if (value !== null) target.searchParams.set(key, value) }
+    }
+    if (teamAllowed && path === 'organization/members') {
+      const query = new URL(request.url).searchParams
+      for (const key of ['limit', 'cursor']) { const value = query.get(key); if (value !== null) target.searchParams.set(key, value) }
     }
     if (auditAllowed) {
       const query = new URL(request.url).searchParams

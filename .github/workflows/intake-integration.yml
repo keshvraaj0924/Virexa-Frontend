@@ -43,11 +43,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: keshvraaj0924/Virexa-backend
-          ref: 7e406c4f8013e3f3224ff62dce4bc0123d05a12c
+          ref: 09a209002c5a7a4761ab05263c43a91c90abb7fa
           path: .auth-backend
           persist-credentials: false
       - name: Verify immutable backend pin
-        run: test "$(git -C .auth-backend rev-parse HEAD)" = '7e406c4f8013e3f3224ff62dce4bc0123d05a12c'
+        run: test "$(git -C .auth-backend rev-parse HEAD)" = '09a209002c5a7a4761ab05263c43a91c90abb7fa'
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
