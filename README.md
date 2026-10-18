@@ -1,3 +1,5 @@
+> Start here: [paired Python candidate developer guide](docs/DEVELOPER_GUIDE.md) for current local setup, exact runtime pins, capabilities and test commands. Older sections below record earlier milestones; use the guide for the current candidate.
+
 # Virexa Frontend
 
 Enterprise operations platform frontend for Virexa.
