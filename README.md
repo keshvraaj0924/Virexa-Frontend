@@ -64,3 +64,11 @@ The Python candidate now uses `GET /api/v1/me/permissions` for typed, implemente
 The workspace has a navy navigation rail, pale document surfaces, visible read-only/forbidden states, and responsive session cards. Landing and authentication styles are preserved. No sample metrics, live AI, scanning or workflow controls have been added. CI screenshot datasets use synthetic accounts and documents only; they are not production activity.
 
 `e2e-sessions/access.spec.ts` verifies a role downgrade after page load against the real Python/PostgreSQL backend, rejects the stale write, verifies viewer/auditor/operator capabilities, and checks permission-outage recovery. Existing real authentication, quarantine intake and session controls suites remain intact.
+
+### Usage and organization entitlements
+
+The optional `/app/usage` view now separates personal usage from capability-gated
+current-organization analytics. It shows independently instrumented meters, bounded
+operation history and read-only preview entitlement state. AI tokens/OCR/workflow
+metrics remain unavailable until genuinely instrumented; payment setup is not enabled.
+See [usage integration and verification](docs/usage-entitlements.md).
