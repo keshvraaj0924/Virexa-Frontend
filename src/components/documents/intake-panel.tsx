@@ -1,5 +1,6 @@
 'use client'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { scanLabel, intakeReceipt } from '@/lib/documents/scan-status'
 import type { DocumentRecord } from '@/contracts/documents'
 import { FileText, UploadCloud, LockKeyhole } from 'lucide-react'
 import { AccessDenied, useAccess } from '@/components/access/access-provider'
@@ -58,7 +59,7 @@ export function IntakePanel() {
     try {
       const document = await sendIntake(file, progress.current, controller.signal, text => { if (mounted.current && !controller.signal.aborted) setMessage(text) })
       if (!mounted.current || controller.signal.aborted) return
-      setMessage(document.scanStatus === 'pending_scan' ? 'Received in private quarantine. Pending scan.' : 'Receipt requires confirmation. Refresh the document list.')
+      setMessage(intakeReceipt(document.scanStatus))
       progress.current = { key: '' }
       setFile(null)
       if (input.current) input.current.value = ''
@@ -73,7 +74,7 @@ export function IntakePanel() {
   const uncertain = progress.current.metadataUncertain
   if (!canRead) return <AccessDenied subject="Document records"/>
   return <>
-    <section className="vx-workspace-note"><h2>Private document intake</h2><p>Files remain in quarantine. Malware scanning, extraction, review, downloads and ERP delivery are unavailable. Pending scan does not mean safe or processed.</p></section>
+    <section className="vx-workspace-note"><h2>Private document intake</h2><p>Files remain in private quarantine. Configured malware scanning is one security layer; a passed scan is not a safety guarantee. Extraction, review, downloads and ERP delivery remain unavailable. Refresh records to see the latest scan result.</p></section>
     {canUpload ? <section className="vx-dashboard-panel vx-intake-upload" aria-label="Upload a document">
       <span className="vx-upload-icon"><UploadCloud aria-hidden="true"/></span>
       <h2>Upload a document</h2>
@@ -92,7 +93,7 @@ export function IntakePanel() {
       {listError && <p role="alert">{listError}</p>}
       {loading && <p role="status">Loading records…</p>}
       {!loading && !listError && items.length === 0 && <div className="vx-empty-state"><span className="vx-state-icon"><FileText aria-hidden="true"/></span><h3>No documents received yet.</h3><p>{canUpload ? 'Add your first file to begin a private intake record.' : 'Authorized document records will appear here when they are available.'}</p></div>}
-      <ul className="vx-document-list">{items.map(item => <li className="vx-document-row" key={item.id}><FileText size={20} aria-hidden="true"/><div><strong>{item.originalFileName}</strong><br/><span>{item.scanStatus === 'pending_scan' ? 'Pending scan · private quarantine' : 'Awaiting upload confirmation'} · {(item.sizeBytes / 1024).toFixed(1)} KiB</span></div></li>)}</ul>
+      <ul className="vx-document-list">{items.map(item => <li className="vx-document-row" key={item.id}><FileText size={20} aria-hidden="true"/><div><strong>{item.originalFileName}</strong><br/><span>{scanLabel(item.scanStatus)} · {(item.sizeBytes / 1024).toFixed(1)} KiB</span></div></li>)}</ul>
       {cursor && <button disabled={loading} onClick={() => void refresh(cursor)}>Load more records</button>}
     </section>
   </>

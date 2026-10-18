@@ -47,7 +47,7 @@ export async function sendIntake(file: File, state: IntakeProgress, signal: Abor
   }
   const id = state.document.id
   const current = (await apiRequest<DocumentRecord>(`/documents/${encodeURIComponent(id)}`, { signal })).data
-  if (current.scanStatus === 'pending_scan') return current
+  if (current.scanStatus === 'pending_scan' || current.scanStatus === 'clean' || current.scanStatus === 'rejected') return current
   if (state.attempt && Date.parse(state.attempt.target.expiresAt) <= Date.now()) state.attempt = undefined
   if (!state.attempt) {
     phase('Preparing quarantine upload…')
