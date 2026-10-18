@@ -115,3 +115,29 @@ test('reduced motion avoids the decorative renderer and has no horizontal overfl
     }
   }
 })
+
+test('records the real public landing motion for visual review', async ({ browser }) => {
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    reducedMotion: 'no-preference',
+    recordVideo: { dir: 'test-results/motion-capture', size: { width: 1440, height: 900 } },
+  })
+  const page = await context.newPage()
+  const video = page.video()
+  await page.goto('http://127.0.0.1:3000/')
+  await page.evaluate(() => document.fonts.ready)
+  await expect(page.locator('.vx-document-field canvas')).toBeVisible()
+  await page.waitForTimeout(1800)
+  await page.getByRole('link', { name: 'Create your workspace', exact: true }).first().hover()
+  await page.waitForTimeout(1000)
+  await page.mouse.move(950, 380, { steps: 20 })
+  await page.waitForTimeout(1800)
+  await page.evaluate(() => window.scrollTo({ top: 700, behavior: 'smooth' }))
+  await page.waitForTimeout(1800)
+  await page.evaluate(() => window.scrollTo({ top: 1320, behavior: 'smooth' }))
+  await page.waitForTimeout(1800)
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
+  await page.waitForTimeout(1800)
+  await context.close()
+  await video?.saveAs('test-results/virexa-landing-motion.webm')
+})
