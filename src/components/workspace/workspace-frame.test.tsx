@@ -70,3 +70,14 @@ it('shows auditor session access without exposing documents or admin routes', ()
   expect(screen.getByRole('link', { name: 'Security' })).toBeTruthy()
   expect(screen.queryByRole('link', { name: 'Documents' })).toBeNull()
 })
+
+it('requires both explicit enablement and server capability for usage navigation', () => {
+  capabilities.values = ['usage:read']
+  const view = render(<WorkspaceFrame authOnly session={session}>Usage</WorkspaceFrame>)
+  expect(screen.queryByRole('link', { name: 'Usage & plan' })).toBeNull()
+  view.rerender(<WorkspaceFrame authOnly usageAnalytics session={session}>Usage</WorkspaceFrame>)
+  expect(screen.getByRole('link', { name: 'Usage & plan' }).getAttribute('href')).toBe('/app/usage')
+  capabilities.values = []
+  view.rerender(<WorkspaceFrame authOnly usageAnalytics session={session}>Usage</WorkspaceFrame>)
+  expect(screen.queryByRole('link', { name: 'Usage & plan' })).toBeNull()
+})

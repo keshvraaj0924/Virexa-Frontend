@@ -1,0 +1,48 @@
+.vx-workspace .vx-usage { display: grid; gap: 22px; }
+.vx-workspace .vx-usage h2 { font-size: 19px; margin: 0 0 8px; }
+.vx-workspace .vx-usage p { color: #6b7c98; font-size: 13px; line-height: 1.65; margin: 7px 0; }
+.vx-workspace .vx-usage-scope { display: flex; gap: 5px; padding: 5px; width: fit-content; border: 1px solid #e1e7f4; border-radius: 12px; background: #eef1fa; }
+.vx-workspace .vx-usage-scope button { display: flex; align-items: center; gap: 9px; border: 0; border-radius: 8px; padding: 12px 18px; background: transparent; color: #526181; cursor: pointer; }
+.vx-workspace .vx-usage-scope button[aria-pressed='true'] { background: white; color: #253c73; box-shadow: 0 2px 8px #1421490a; }
+.vx-workspace .vx-usage-toolbar, .vx-workspace .vx-usage-controls { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+.vx-workspace .vx-usage label { display: grid; gap: 7px; font-size: 12px; color: #526181; }
+.vx-workspace .vx-usage select { border: 1px solid #d8e1f4; border-radius: 8px; background: white; color: #253b63; padding: 10px 30px 10px 12px; max-width: 100%; }
+.vx-workspace .vx-usage button { min-height: 40px; }
+.vx-workspace .vx-usage button:disabled { opacity: .5; cursor: default; }
+.vx-workspace .vx-usage button:focus-visible, .vx-workspace .vx-usage select:focus-visible { outline: 3px solid #418fde; outline-offset: 3px; }
+.vx-workspace .vx-usage-controls .text-button { display: flex; align-items: center; gap: 8px; margin-top: 20px; }
+.vx-workspace .vx-usage-meters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.vx-workspace .vx-usage-meter { padding: 23px; background: white; border: 1px solid #e1e7f5; border-radius: 15px; min-width: 0; }
+.vx-workspace .vx-usage-meter-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; color: #487ccc; background: linear-gradient(135deg, #e4f5ff, #ede9fe); margin-bottom: 17px; }
+.vx-workspace .vx-usage-meter h3 { font-size: 13px; font-weight: 500; color: #596984; margin-bottom: 8px; }
+.vx-workspace .vx-usage-meter > strong { color: #14243f; font-size: 24px; font-weight: 650; letter-spacing: -.7px; }
+.vx-workspace .vx-usage-meter p { font-size: 11px; }
+.vx-workspace .vx-usage-states { display: flex; flex-wrap: wrap; gap: 12px 24px; padding: 3px 0; font-size: 12px; color: #667692; }
+.vx-workspace .vx-usage-states strong { color: #243b60; }
+.vx-workspace .vx-usage-plan, .vx-workspace .vx-usage-panel { background: white; border: 1px solid #e1e7f5; border-radius: 16px; padding: 27px; min-width: 0; }
+.vx-workspace .vx-usage-plan { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px 36px; background: linear-gradient(115deg, #fff, #f6f7ff); }
+.vx-workspace .vx-usage-plan h2 { text-transform: capitalize; margin-top: 12px; }
+.vx-workspace .vx-usage-allowance { align-self: center; }
+.vx-workspace .vx-usage-allowance strong { font-size: 23px; display: block; }
+.vx-workspace .vx-usage-allowance span { display: block; font-size: 12px; color: #65728d; margin-top: 10px; }
+.vx-workspace .vx-usage-allowance progress { width: 100%; height: 7px; margin-top: 13px; accent-color: #487fdd; }
+.vx-workspace p.vx-usage-billing { grid-column: 1/-1; padding-top: 17px; border-top: 1px solid #e2e8f5; margin: 0; }
+.vx-workspace .vx-usage-groups, .vx-workspace .vx-usage-history { list-style: none; padding: 0; margin: 22px 0; }
+.vx-workspace .vx-usage-groups button { width: 100%; text-align: left; background: transparent; border: 0; border-top: 1px solid #edf0f8; padding: 16px 0; display: grid; gap: 7px; color: #30486a; cursor: pointer; }
+.vx-workspace .vx-usage-groups button:hover { background: #f6f8ff; }
+.vx-workspace .vx-usage-groups span, .vx-workspace .vx-usage-groups strong { font-size: 12px; }
+.vx-workspace .vx-usage-identity { overflow-wrap: anywhere; }
+.vx-workspace .vx-usage-filters, .vx-workspace .vx-usage-pagination { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin: 23px 0 12px; }
+.vx-workspace .vx-usage-history li { display: flex; justify-content: space-between; gap: 22px; border-top: 1px solid #e9eef8; padding: 20px 0; }
+.vx-workspace .vx-usage-history li > div { min-width: 0; }
+.vx-workspace .vx-usage-history strong { font-size: 13px; text-transform: capitalize; }
+.vx-workspace .vx-usage-history p { font-size: 11px; }
+.vx-workspace .vx-usage-status { font-size: 11px; color: #326796; background: #eaf4ff; border-radius: 5px; padding: 5px 8px; display: inline-block; }
+.vx-workspace .vx-usage-status.is-succeeded { color: #167b66; background: #eaf8f2; }
+.vx-workspace .vx-usage-status.is-failed { color: #a1493f; background: #fff0ed; }
+.vx-workspace .vx-usage-pagination { align-items: center; justify-content: space-between; font-size: 12px; }
+.vx-workspace .vx-usage-empty { padding: 35px 0; color: #7086af; text-align: center; }
+.vx-workspace .vx-usage-empty h3 { margin-top: 12px; font-size: 15px; }
+.vx-workspace .vx-usage-message { padding: 22px; border: 1px solid #e8d2d0; background: #fff8f7; border-radius: 12px; }
+@media(max-width: 1050px) { .vx-workspace .vx-usage-meters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .vx-workspace .vx-usage-plan { grid-template-columns: 1fr; } }
+@media(max-width: 540px) { .vx-workspace .vx-usage { gap: 18px; } .vx-workspace .vx-usage-scope { width: 100%; } .vx-workspace .vx-usage-scope button { padding: 10px; font-size: 12px; gap: 6px; flex: 1; } .vx-workspace .vx-usage-meter { padding: 17px; } .vx-workspace .vx-usage-meter > strong { font-size: 20px; } .vx-workspace .vx-usage-plan, .vx-workspace .vx-usage-panel { padding: 20px; } .vx-workspace .vx-usage-history li { flex-direction: column; gap: 8px; } }

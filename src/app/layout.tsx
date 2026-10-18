@@ -10,6 +10,7 @@ import './app-shell.css'
 import './premium-workspace.css'
 import './refined-journey.css'
 import './access-workspace.css'
+import './usage-workspace.css'
 
 export const metadata: Metadata = {
   title: 'Virexa — Beyond Automation',

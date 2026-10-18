@@ -69,3 +69,22 @@ it('proxies effective permissions read-only without forwarding client scope hint
   expect(write.status).toBe(404)
   expect(upstreamFetch).toHaveBeenCalledTimes(1)
 })
+
+it('keeps usage routes opt-in, read-only and scope-safe', async () => {
+  const upstreamFetch = vi.fn().mockImplementation(() => Promise.resolve(Response.json({ data: {} })))
+  vi.stubGlobal('fetch', upstreamFetch)
+  expect((await proxyAuth(new Request('http://localhost/api/v1/usage/me'), ['usage', 'me'])).status).toBe(404)
+  vi.stubEnv('VIREXA_USAGE_ANALYTICS', '1')
+  for (const route of ['me', 'organization', 'me/history', 'organization/history']) {
+    const response = await proxyAuth(new Request(`http://localhost/api/v1/usage/${route}?start=2026-10-01&limit=25&cursor=opaque&operation=document_intake&state=succeeded&userId=someone&organizationId=other&role=admin`), ['usage', ...route.split('/')])
+    expect(response.status).toBe(200)
+    const forwarded = new URL(String(upstreamFetch.mock.calls.at(-1)![0]))
+    expect(forwarded.searchParams.has('organizationId')).toBe(false)
+    expect(forwarded.searchParams.has('role')).toBe(false)
+    expect(forwarded.searchParams.has('userId')).toBe(route === 'organization/history')
+    expect(response.headers.get('cache-control')).toContain('no-store')
+  }
+  for (const method of ['POST', 'DELETE', 'PUT', 'PATCH']) expect((await proxyAuth(new Request('http://localhost/api/v1/usage/me', { method }), ['usage', 'me'])).status).toBe(404)
+  expect((await proxyAuth(new Request('http://localhost/api/v1/usage/other'), ['usage', 'other'])).status).toBe(404)
+  expect(upstreamFetch).toHaveBeenCalledTimes(4)
+})

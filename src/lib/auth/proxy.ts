@@ -18,7 +18,8 @@ export async function proxyAuth(request: Request, segments: string[]) {
     (request.method === 'POST' && path === 'auth/sessions/revoke-others') ||
     (request.method === 'DELETE' && /^auth\/sessions\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(path))
   )
-  if (!allowed && !sessionsAllowed) return failure(404, 'FEATURE_UNAVAILABLE', 'This endpoint is unavailable in the authentication preview.')
+  const usageAllowed = process.env.VIREXA_USAGE_ANALYTICS === '1' && request.method === 'GET' && ['usage/me', 'usage/me/history', 'usage/organization', 'usage/organization/history'].includes(path)
+  if (!allowed && !sessionsAllowed && !usageAllowed) return failure(404, 'FEATURE_UNAVAILABLE', 'This endpoint is unavailable in the authentication preview.')
   const headers = new Headers({ Accept: 'application/json' })
   // Forward the original Origin, never synthesize trust from Host or forwarded headers.
   for (const name of ['origin', 'cookie', 'content-type', 'x-request-id']) {
@@ -46,6 +47,13 @@ export async function proxyAuth(request: Request, segments: string[]) {
     if (path === 'auth/sessions' && request.method === 'GET') {
       const query = new URL(request.url).searchParams
       for (const key of ['limit', 'cursor']) {
+        const value = query.get(key)
+        if (value !== null) target.searchParams.set(key, value)
+      }
+    }
+    if (usageAllowed) {
+      const query = new URL(request.url).searchParams
+      for (const key of ['start', 'end', 'limit', 'cursor', 'operation', 'state', ...(path === 'usage/organization/history' ? ['userId'] : [])]) {
         const value = query.get(key)
         if (value !== null) target.searchParams.set(key, value)
       }
