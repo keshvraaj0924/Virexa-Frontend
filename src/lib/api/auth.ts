@@ -1,6 +1,8 @@
 import type { ApiFailure, ApiMeta, ApiSuccess } from '../../contracts/api'
 import type { ActiveSession, ApiErrorCode, AuthSession, LoginRequest, RegisterRequest, RevokeOtherSessionsResult } from '../../contracts/auth'
 
+import { notifyAccessDenied } from '@/lib/auth/access-events'
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'
 
 export class ApiRequestError extends Error {
@@ -34,6 +36,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   })
 
   if (!response.ok) {
+    notifyAccessDenied(response.status)
     const payload = (await response.json().catch(() => null)) as ApiFailure | null
     const retryAfterHeader = response.headers.get('Retry-After')
     const parsedRetryAfterSeconds = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : undefined

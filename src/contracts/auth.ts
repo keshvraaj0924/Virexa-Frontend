@@ -4,6 +4,7 @@ export type UserRole =
   | 'manager'
   | 'operator'
   | 'viewer'
+  | 'auditor'
 
 export type Permission =
   | 'platform:read'

@@ -56,3 +56,11 @@ The code-native orbital document character is Virexa-specific artwork, informed 
 ### Real FastAPI authentication preview
 
 An explicit opt-in [integration preview](docs/real-auth-integration.md) now connects the browser and server-rendered session checks to the pinned Python candidate through a same-host route allowlist. It gates unported workspace features while preserving the existing default Node backend configuration. See that guide for isolated PostgreSQL setup, exact commit pins, browser verification and release limitations.
+
+### Effective access and workspace surfaces
+
+The Python candidate now uses `GET /api/v1/me/permissions` for typed, implemented capabilities. Candidate navigation and intake/session controls do not derive permissions from a role label. Missing or malformed capability responses fail closed, and permissions refresh on navigation, focus, visibility and authorization denials. A denial never automatically retries the failed mutation. The read-only `/app/access` page distinguishes capability availability from organization, ownership and resource-state checks, which remain enforced by the backend. The legacy Node path remains separate.
+
+The workspace has a navy navigation rail, pale document surfaces, visible read-only/forbidden states, and responsive session cards. Landing and authentication styles are preserved. No sample metrics, live AI, scanning or workflow controls have been added. CI screenshot datasets use synthetic accounts and documents only; they are not production activity.
+
+`e2e-sessions/access.spec.ts` verifies a role downgrade after page load against the real Python/PostgreSQL backend, rejects the stale write, verifies viewer/auditor/operator capabilities, and checks permission-outage recovery. Existing real authentication, quarantine intake and session controls suites remain intact.

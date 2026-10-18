@@ -11,7 +11,7 @@ export async function proxyAuth(request: Request, segments: string[]) {
   if (!upstream) return failure(503, 'CONFIGURATION_ERROR', 'Authentication preview is not configured.')
   const path = segments.join('/')
   const allowed = request.method === 'GET'
-    ? ['auth/session', 'me'].includes(path) || /^organizations\/[0-9a-f-]{36}$/i.test(path)
+    ? ['auth/session', 'me', 'me/permissions'].includes(path) || /^organizations\/[0-9a-f-]{36}$/i.test(path)
     : request.method === 'POST' && ['auth/login', 'auth/register', 'auth/logout'].includes(path)
   const sessionsAllowed = process.env.VIREXA_SESSION_CONTROLS === '1' && (
     (request.method === 'GET' && path === 'auth/sessions') ||

@@ -15,6 +15,7 @@ export type Permission =
   | 'document:manage'
 
 const ROLE_PERMISSIONS: Record<Role, ReadonlySet<Permission>> = {
+  auditor: new Set(),
   super_admin: new Set(['platform:read', 'platform:manage', 'organization:manage', 'audit:read', 'workflow:read', 'workflow:create', 'workflow:manage', 'document:read', 'document:create', 'document:manage']),
   admin: new Set(['platform:read', 'organization:manage', 'audit:read', 'workflow:read', 'workflow:create', 'workflow:manage', 'document:read', 'document:create', 'document:manage']),
   manager: new Set(['platform:read', 'audit:read', 'workflow:read', 'workflow:create', 'workflow:manage', 'document:read', 'document:create', 'document:manage']),

@@ -3,6 +3,8 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import SecuritySettingsPage from './page'
 import { authApi, ApiRequestError } from '@/lib/api/auth'
+const access = vi.hoisted(() => ({ allowed: true }))
+vi.mock('@/components/access/access-provider', () => ({ useAccess: () => ({ allows: () => access.allowed }), AccessDenied: () => <p>Access restricted</p> }))
 vi.mock('@/lib/api/auth', async () => {
   const actual = await vi.importActual<typeof import('@/lib/api/auth')>('@/lib/api/auth')
   return { ...actual, authApi: { activeSessions: vi.fn(), revokeSession: vi.fn(), revokeOtherSessions: vi.fn() } }
@@ -10,7 +12,7 @@ vi.mock('@/lib/api/auth', async () => {
 const current = { id: 'current', current: true, createdAt: '2026-01-01T00:00:00Z', expiresAt: '2027-01-01T00:00:00Z' }
 const other = { ...current, id: 'other', current: false }
 function page(data = [current], nextCursor: string | null = null) { return { data, meta: { requestId: 'test', timestamp: '', pagination: { nextCursor } } } }
-beforeEach(() => { vi.clearAllMocks(); vi.mocked(authApi.activeSessions).mockResolvedValue(page()); vi.mocked(authApi.revokeOtherSessions).mockResolvedValue({ data: { revokedCount: 1 }, meta: { requestId: '', timestamp: '' } }); vi.mocked(authApi.revokeSession).mockResolvedValue({ data: { success: true }, meta: { requestId: '', timestamp: '' } }) })
+beforeEach(() => { access.allowed = true; vi.clearAllMocks(); vi.mocked(authApi.activeSessions).mockResolvedValue(page()); vi.mocked(authApi.revokeOtherSessions).mockResolvedValue({ data: { revokedCount: 1 }, meta: { requestId: '', timestamp: '' } }); vi.mocked(authApi.revokeSession).mockResolvedValue({ data: { success: true }, meta: { requestId: '', timestamp: '' } }) })
 afterEach(cleanup)
 it('loads additional pages without duplication and refresh resets the live inventory', async () => {
   vi.mocked(authApi.activeSessions).mockResolvedValueOnce(page([other], 'cursor')).mockResolvedValueOnce(page([other, current]))
@@ -72,4 +74,21 @@ it('ignores an inventory response after the page unmounts', async () => {
   view.unmount()
   await act(async () => resolve(page([current, other], 'cursor')))
   expect(screen.queryByText('Current session')).toBeNull()
+})
+
+it('recovers permissions while a retired inventory is still pending', async () => {
+  let resolve!: (value: ReturnType<typeof page>) => void
+  vi.mocked(authApi.activeSessions).mockReturnValueOnce(new Promise(done => { resolve = done }))
+  const view = render(<SecuritySettingsPage />)
+  await waitFor(() => expect(authApi.activeSessions).toHaveBeenCalledTimes(1))
+  access.allowed = false
+  view.rerender(<SecuritySettingsPage />)
+  expect(screen.getByText('Access restricted')).toBeTruthy()
+  access.allowed = true
+  view.rerender(<SecuritySettingsPage />)
+  await act(async () => resolve(page([other])))
+  await waitFor(() => expect(authApi.activeSessions).toHaveBeenCalledTimes(2))
+  await screen.findByText('Current session')
+  expect(screen.queryByText('Active session')).toBeNull()
+  expect((screen.getByRole('button', { name: 'Refresh sessions' }) as HTMLButtonElement).disabled).toBe(false)
 })

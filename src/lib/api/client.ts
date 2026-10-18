@@ -42,6 +42,8 @@ export class ApiError extends Error {
   }
 }
 
+import { notifyAccessDenied } from '@/lib/auth/access-events'
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
 
 function correlationHeaders(): HeadersInit {
@@ -75,6 +77,7 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<A
 
   const payload = (await response.json().catch(() => null)) as ApiEnvelope<T> | ApiErrorEnvelope | null;
   if (!response.ok) {
+    notifyAccessDenied(response.status)
     if (isApiErrorEnvelope(payload)) {
       throw new ApiError({
         code: payload.error.code,
