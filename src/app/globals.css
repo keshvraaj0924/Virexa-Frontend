@@ -36,3 +36,6 @@ button, input { font: inherit; }
 .vx-audit .audit-table th { font-size: 11px; color: #475569; }
 .vx-audit .audit-heading p, .vx-audit .audit-empty p { font-size: 14px; line-height: 1.6; }
 .vx-audit .audit-subvalue { font-size: 11px; color: #475569; }
+.vx-audit .text-button { padding: .65rem .9rem; border: 1px solid #cbd5e1; border-radius: .5rem; color: #24466c; background: #f8fafc; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.vx-audit .text-button:hover:not(:disabled) { background: #eef5ff; border-color: #93bce9; }
+.vx-audit .text-button:focus-visible, .vx-audit .audit-table-wrap:focus-visible { outline: 2px solid #418fde; outline-offset: 3px; }
