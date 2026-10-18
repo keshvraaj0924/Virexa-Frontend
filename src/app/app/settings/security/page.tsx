@@ -23,6 +23,8 @@ export default function SecuritySettingsPage() {
 
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const busy = useRef(false)
+  const queuedRefresh = useRef(false)
+  const [refreshVersion, setRefreshVersion] = useState(0)
   const generation = useRef(0)
   const mounted = useRef(true)
 
@@ -52,22 +54,32 @@ export default function SecuritySettingsPage() {
     }
   }, [canRead])
 
+  const finishOperation = useCallback(() => {
+    busy.current = false
+    if (queuedRefresh.current && mounted.current) {
+      queuedRefresh.current = false
+      setRefreshVersion(version => version + 1)
+    }
+  }, [])
+
   const refresh = useCallback(async (cursor?: string) => {
-    if (busy.current) return
+    // A permission recovery can arrive before a retired inventory request settles.
+    // Queue a fresh first page instead of leaving the page permanently loading.
+    if (busy.current) { queuedRefresh.current = true; return }
     busy.current = true
     setError(null)
     setMessage(null)
     try { await loadSessions(cursor) }
     catch (requestError) { handleError(requestError, 'Unable to load active sessions.') }
-    finally { busy.current = false }
-  }, [loadSessions, handleError])
+    finally { finishOperation() }
+  }, [loadSessions, handleError, finishOperation])
 
   useEffect(() => {
     mounted.current = true
     if (canRead) void refresh()
     else { generation.current += 1; setSessions([]); setNextCursor(null) }
     return () => { mounted.current = false }
-  }, [refresh, canRead])
+  }, [refresh, canRead, refreshVersion])
 
   async function revokeSession(session: ActiveSession) {
     if (busy.current || !canRevoke) return
@@ -88,7 +100,7 @@ export default function SecuritySettingsPage() {
     } catch (requestError) {
       handleError(requestError, 'Unable to revoke this session.')
     } finally {
-      busy.current = false
+      finishOperation()
       if (mounted.current) setRevokingSessionId(null)
     }
   }
@@ -108,7 +120,7 @@ export default function SecuritySettingsPage() {
     } catch (requestError) {
       handleError(requestError, 'Unable to revoke other sessions.')
     } finally {
-      busy.current = false
+      finishOperation()
       if (mounted.current) setIsRevoking(false)
     }
   }

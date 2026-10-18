@@ -61,7 +61,7 @@ export function WorkspaceFrame({ session, children, authOnly = false, documentIn
           {authOnly && <Link href="/app/access" aria-current={pathname === '/app/access' ? 'page' : undefined} onClick={() => setOpen(false)}><ShieldCheck size={18} aria-hidden="true"/>Your access</Link>}
           <Link href="/" className="vx-site-link">Visit website<ArrowUpRight size={15} aria-hidden="true" /></Link>
         </nav>
-        <div className="vx-workspace-account"><span className="account-avatar">{session.user.displayName.slice(0, 1).toUpperCase()}</span><div><strong>{session.user.displayName}</strong><small>{session.user.role.replaceAll('_', ' ')}</small></div><button onClick={logout} disabled={pending} aria-label={pending ? 'Signing out' : 'Sign out'} title="Sign out"><LogOut size={18} /></button></div>
+        <div className="vx-workspace-account"><span className="account-avatar">{session.user.displayName.slice(0, 1).toUpperCase()}</span><div><strong>{session.user.displayName}</strong><small>{authOnly ? 'Signed in' : session.user.role.replaceAll('_', ' ')}</small></div><button onClick={logout} disabled={pending} aria-label={pending ? 'Signing out' : 'Sign out'} title="Sign out"><LogOut size={18} /></button></div>
         {error && <p className="vx-logout-error" role="alert">{error}</p>}
       </aside>
       <div id="workspace-content" className="vx-workspace-body" tabIndex={-1}><div className="vx-workspace-topbar"><span>Workspace <span aria-hidden="true">/</span> {pathname.includes('/documents') ? 'Documents' : pathname.includes('/security') ? 'Security' : pathname.includes('/access') ? 'Access' : 'Overview'}</span><span><ShieldCheck size={14} aria-hidden="true"/> Private workspace</span></div>{children}</div>

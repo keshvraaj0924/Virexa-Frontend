@@ -57,3 +57,15 @@ describe('bounded auth candidate proxy', () => {
     expect(await (await proxyAuth(new Request('http://localhost'), ['me'])).text()).not.toContain('private database detail')
   })
 })
+
+it('proxies effective permissions read-only without forwarding client scope hints', async () => {
+  const upstreamFetch = vi.fn().mockResolvedValue(Response.json({ data: { capabilities: ['session:read'] } }))
+  vi.stubGlobal('fetch', upstreamFetch)
+  const response = await proxyAuth(new Request('http://localhost/api/v1/me/permissions?role=super_admin&organizationId=other'), ['me', 'permissions'])
+  expect(response.status).toBe(200)
+  expect(String(upstreamFetch.mock.calls[0][0])).toBe('http://127.0.0.1:4000/api/v1/me/permissions')
+  expect(response.headers.get('cache-control')).toContain('no-store')
+  const write = await proxyAuth(new Request('http://localhost/api/v1/me/permissions', { method: 'POST' }), ['me', 'permissions'])
+  expect(write.status).toBe(404)
+  expect(upstreamFetch).toHaveBeenCalledTimes(1)
+})
