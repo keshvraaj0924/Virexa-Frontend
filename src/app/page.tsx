@@ -5,6 +5,8 @@ import {
 } from 'lucide-react'
 import { VirexaMark } from '@/components/brand/virexa-mark'
 import { SilkWave } from '@/components/visual/silk-wave'
+import { InteractiveLink } from '@/components/marketing/interactive-link'
+import { DocumentField } from '@/components/visual/document-field'
 import { EntranceMotion } from '@/components/marketing/entrance-motion'
 
 const capabilities = [
@@ -61,13 +63,13 @@ export default function HomePage() {
         <section className="vx-hero" aria-labelledby="vx-hero-heading">
           <div className="vx-hero-content">
             <div className="vx-eyebrow vx-eyebrow-light" data-vx-enter>
-              <Sparkles size={13} aria-hidden="true" /> DOCUMENT INTELLIGENCE, BEAUTIFULLY CONNECTED
+              <Sparkles size={13} aria-hidden="true" /> INTELLIGENCE IN MOTION
             </div>
-            <h1 id="vx-hero-heading" data-vx-enter>From documents.<br />To decisions.<br /><span>Beautifully simple.</span></h1>
-            <p data-vx-enter>Your documents, workflows and people. Finally in one place. Bring clarity to accounts payable, with your team in control.</p>
+            <h1 id="vx-hero-heading" data-vx-enter>Documents in.<br /><span>Possibilities out.</span></h1>
+            <p data-vx-enter>Turn the paperwork into the way forward. Intelligent document operations, connected workflows, and people firmly in control.</p>
             <div className="vx-hero-actions" data-vx-enter>
-              <Link href="/register" className="vx-button vx-button-blue">Create your workspace <ArrowRight size={17} aria-hidden="true" /></Link>
-              <a href="#platform" className="vx-button vx-button-outline">Explore Virexa <ArrowUpRight size={16} aria-hidden="true" /></a>
+              <InteractiveLink href="/register" className="vx-button vx-button-blue">Create your workspace <ArrowRight size={17} aria-hidden="true" /></InteractiveLink>
+              <InteractiveLink href="#platform" className="vx-button vx-button-outline">Explore Virexa <ArrowUpRight size={16} aria-hidden="true" /></InteractiveLink>
             </div>
             <div className="vx-hero-assurances" data-vx-enter>
               <span><ShieldCheck size={16} aria-hidden="true" /> Human-in-control workflows</span>
@@ -76,7 +78,10 @@ export default function HomePage() {
           </div>
 
           <div className="vx-hero-visual" aria-label="Illustration of an invoice moving through a controlled processing workflow" data-vx-enter>
+            <DocumentField />
+            <div className="vx-orbital-lines" aria-hidden="true"><i /><i /><i /></div>
             <div className="vx-visual-halo" aria-hidden="true" />
+            <div className="vx-scene-label"><span className="vx-preview-dot" /> DOCUMENT INTELLIGENCE <span>PRODUCT PREVIEW</span></div>
             <div className="vx-document vx-document-back" aria-hidden="true">
               <span className="vx-doc-overline">DOCUMENT</span><span className="vx-doc-line" /><span className="vx-doc-line short" />
             </div>
@@ -89,14 +94,14 @@ export default function HomePage() {
               <div className="vx-doc-divider" />
               <span className="vx-doc-line" /><span className="vx-doc-line short" /><span className="vx-doc-line" />
               <div className="vx-doc-table"><i /><i /><i /></div>
-              <div className="vx-doc-total"><span>Validated fields</span><strong>✓</strong></div>
+              <div className="vx-doc-total"><span>Structured. Ready to review.</span><strong>↗</strong></div>
             </div>
             <div className="vx-process-glass">
-              <div className="vx-process-top"><span>Document journey</span><span className="vx-process-badge">Illustrative</span></div>
+              <div className="vx-process-top"><span>Intelligence at work</span><span className="vx-process-badge">Preview</span></div>
               <div className="vx-process-row"><span className="vx-process-icon"><Check size={13} /></span><span>Document received</span></div>
               <div className="vx-process-row"><span className="vx-process-icon"><Check size={13} /></span><span>Fields extracted</span></div>
               <div className="vx-process-row"><span className="vx-process-icon"><Check size={13} /></span><span>Validation requested</span></div>
-              <div className="vx-process-row vx-process-pending"><span className="vx-process-icon">4</span><span>Ready for human review</span></div>
+              <div className="vx-process-row vx-process-pending"><span className="vx-process-icon">4</span><span>Your team takes it from here</span></div>
             </div>
           </div>
         </section>
@@ -110,12 +115,12 @@ export default function HomePage() {
 
       <section id="platform" className="vx-platform-section" aria-labelledby="vx-platform-title">
         <div className="vx-section-intro">
-          <div><span className="vx-section-kicker">THE VIREXA PLATFORM</span><h2 id="vx-platform-title">Less manual work.<br /><span>More clarity.</span></h2></div>
+          <div><span className="vx-section-kicker">01 / MADE FOR THE WAY YOU WORK</span><h2 id="vx-platform-title">A clear path through<br /><span>the complexity.</span></h2></div>
           <p>Bring document operations into focus with intelligent extraction, structured workflows, and the people who make the final call.</p>
         </div>
         <div className="vx-capability-grid">
           {capabilities.map(({ icon: Icon, number, title, description }) => (
-            <article className="vx-capability-card" key={number}>
+            <article className="vx-capability-card" data-vx-reveal key={number}>
               <div className="vx-capability-top"><span className="vx-capability-icon"><Icon size={23} /></span><span>{number} / 03</span></div>
               <h3>{title}</h3><p>{description}</p>
             </article>
@@ -125,12 +130,12 @@ export default function HomePage() {
 
       <section id="process" className="vx-process-section" aria-labelledby="vx-process-title">
         <div className="vx-process-copy">
-          <span className="vx-section-kicker">BUILT FOR REAL OPERATIONS</span>
+          <span className="vx-section-kicker">02 / FROM FIRST FILE TO FINAL CALL</span>
           <h2 id="vx-process-title">Every step visible.<br /><span>Every decision owned.</span></h2>
           <p>Virexa organizes the flow of work from intake to approved action. Automation assists your team; it does not replace authorized review.</p>
           <Link href="/register" className="vx-text-link">Create your workspace <ArrowRight size={18} /></Link>
         </div>
-        <div className="vx-process-preview">
+        <div className="vx-process-preview" data-vx-reveal>
           <div className="vx-preview-header"><span><span className="vx-preview-dot" /> Invoice workflow</span><span>PROCESS OVERVIEW</span></div>
           <div className="vx-preview-steps">
             {steps.map(({ label, detail, icon: Icon }, index) => (
@@ -146,7 +151,7 @@ export default function HomePage() {
 
       <section id="security" className="vx-security-banner">
         <div className="vx-security-icon"><ShieldCheck size={30} /></div>
-        <div><span className="vx-section-kicker">CONTROL IS NOT OPTIONAL</span><h2>Designed around security, accountability, and human oversight.</h2></div>
+        <div><span className="vx-section-kicker">03 / CONFIDENCE, BUILT IN</span><h2>Designed around security, accountability, and human oversight.</h2></div>
         <Link href="/register" className="vx-button vx-button-blue">Get started <ArrowUpRight size={16} /></Link>
       </section>
       <footer className="vx-site-footer">

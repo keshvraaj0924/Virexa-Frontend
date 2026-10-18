@@ -63,7 +63,7 @@ test('landing introduces the connected sign-in and registration journey', async 
   await page.evaluate(() => document.fonts.ready)
   expect(await page.evaluate(() => Array.from(document.fonts).some(font => font.family === 'Geist' && font.status === 'loaded'))).toBe(true)
   expect((await page.request.get('/fonts/geist-latin.woff2')).status()).toBe(200)
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('From documents.')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Documents in.')
   await page.screenshot({ path: 'test-results/landing-desktop.png', fullPage: true })
   await page.getByRole('navigation').getByRole('link', { name: 'Sign in', exact: true }).click()
   await expect(page).toHaveURL(/\/login$/)
@@ -75,4 +75,69 @@ test('landing introduces the connected sign-in and registration journey', async 
   await expect(page.getByRole('navigation').getByRole('link', { name: 'Sign in', exact: true })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.screenshot({ path: 'test-results/landing-mobile.png', fullPage: true })
+})
+
+test('animated landing loads real WebGL and keeps content usable after context loss', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  const failures: string[] = []
+  page.on('pageerror', error => failures.push(error.message))
+  await page.goto('/')
+  await page.evaluate(() => document.fonts.ready)
+  await expect(page.locator('.vx-document-field canvas')).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCSS('opacity', '1')
+  await page.waitForTimeout(1300)
+  await page.screenshot({ path: 'test-results/landing-webgl-desktop.png', fullPage: true })
+  await page.locator('#platform').scrollIntoViewIfNeeded()
+  await page.waitForTimeout(1100)
+  await page.screenshot({ path: 'test-results/landing-platform.png' })
+  await page.evaluate(() => {
+    const canvas = document.querySelector('.vx-document-field canvas') as HTMLCanvasElement
+    canvas.dispatchEvent(new Event('webglcontextlost', { cancelable: true }))
+  })
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.screenshot({ path: 'test-results/landing-webgl-fallback.png' })
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  expect(failures).toEqual([])
+})
+
+test('reduced motion avoids the decorative renderer and has no horizontal overflow', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  for (const width of [360, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto('/')
+    await expect(page.locator('.vx-document-field canvas')).toHaveCount(0)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    for (const selector of ['.vx-hero-content', '.vx-hero-visual', '.vx-hero-content > p', '.vx-process-glass']) {
+      const bounds = await page.locator(selector).boundingBox()
+      expect(bounds, selector).not.toBeNull()
+      expect(bounds!.x + bounds!.width, selector).toBeLessThanOrEqual(width + 3)
+    }
+  }
+})
+
+test('records the real public landing motion for visual review', async ({ browser }) => {
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    reducedMotion: 'no-preference',
+    recordVideo: { dir: 'test-results/motion-capture', size: { width: 1440, height: 900 } },
+  })
+  const page = await context.newPage()
+  const video = page.video()
+  await page.goto('http://127.0.0.1:3000/')
+  await page.evaluate(() => document.fonts.ready)
+  await expect(page.locator('.vx-document-field canvas')).toBeVisible()
+  await page.waitForTimeout(1800)
+  await page.getByRole('link', { name: 'Create your workspace', exact: true }).first().hover()
+  await page.waitForTimeout(1000)
+  await page.mouse.move(950, 380, { steps: 20 })
+  await page.waitForTimeout(1800)
+  await page.evaluate(() => window.scrollTo({ top: 700, behavior: 'smooth' }))
+  await page.waitForTimeout(1800)
+  await page.evaluate(() => window.scrollTo({ top: 1320, behavior: 'smooth' }))
+  await page.waitForTimeout(1800)
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
+  await page.waitForTimeout(1800)
+  await context.close()
+  await video?.saveAs('test-results/virexa-landing-motion.webm')
 })
