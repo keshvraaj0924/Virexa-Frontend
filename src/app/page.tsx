@@ -81,7 +81,7 @@ export default function HomePage() {
             <DocumentField />
             <div className="vx-orbital-lines" aria-hidden="true"><i /><i /><i /></div>
             <div className="vx-visual-halo" aria-hidden="true" />
-            <div className="vx-scene-label"><span className="vx-preview-dot" /> LIVE IN YOUR WORKSPACE <span>PRODUCT PREVIEW</span></div>
+            <div className="vx-scene-label"><span className="vx-preview-dot" /> DOCUMENT INTELLIGENCE <span>PRODUCT PREVIEW</span></div>
             <div className="vx-document vx-document-back" aria-hidden="true">
               <span className="vx-doc-overline">DOCUMENT</span><span className="vx-doc-line" /><span className="vx-doc-line short" />
             </div>

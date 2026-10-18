@@ -51,3 +51,10 @@
 .vx-workspace :is(.vx-dashboard-panel,.vx-access-panel,.security-card,.vx-intake-upload,.vx-intake-records,.vx-usage-panel){background:linear-gradient(135deg,#eef0ff,#e5eafa);border-color:#c3cfea}
 .vx-workspace .vx-upload-dropzone{background:linear-gradient(135deg,#d5dafa,#d9e8fa);border-color:#8e9ed6}.vx-workspace .vx-document-row{background:#edf0ff;border-color:#c6d0e9}.vx-workspace .vx-workspace-note{background:#dcdcf5;border-color:#c4bde9;color:#555d7e}.vx-workspace .vx-dashboard-banner{background:linear-gradient(110deg,#3559c9,#7950bc);border-color:#8678da}.vx-workspace .vx-usage-plan{background:linear-gradient(115deg,#d7d6f6,#dce7f9);border-color:#bdc6e7}.vx-workspace .vx-usage .text-button{background:#e6eafa;border-color:#afbfdf;color:#344f88}
 .vx-auth-page .vx-account-choice input{height:15px;width:15px}.vx-account-choice label.is-selected{background:#b9b5ed55;border-color:#7568b9}.vx-account-choice small,.vx-signup-explainer,.vx-signup-progress{color:#54617d}
+
+.vx-auth-intro,.vx-auth-switch,.vx-auth-field-hint,.vx-auth-trust,.vx-account-choice small,.vx-signup-explainer,.vx-signup-progress{color:#45536f}.vx-auth-field input::placeholder{color:#596580}
+.vx-workspace .vx-overview-card small,.vx-workspace .vx-overview-card p,.vx-workspace .vx-workspace-detail small,.vx-workspace :is(.vx-empty-operations,.vx-empty-state) p{color:#53617d}
+@media(max-width:780px){
+.vx-hero{grid-template-columns:minmax(0,1fr)}.vx-hero-content,.vx-hero-visual{min-width:0}.vx-hero-visual{width:min(470px,100%)}
+.vx-guide{position:relative;inset:auto;width:100%;display:flex;justify-content:flex-end;padding:14px 18px;background:#141b37}.vx-guide-panel{right:18px;bottom:75px;max-width:calc(100vw - 36px)}
+}

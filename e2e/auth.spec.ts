@@ -108,5 +108,10 @@ test('reduced motion avoids the decorative renderer and has no horizontal overfl
     await page.goto('/')
     await expect(page.locator('.vx-document-field canvas')).toHaveCount(0)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    for (const selector of ['.vx-hero-content', '.vx-hero-visual', '.vx-hero-content > p', '.vx-process-glass']) {
+      const bounds = await page.locator(selector).boundingBox()
+      expect(bounds, selector).not.toBeNull()
+      expect(bounds!.x + bounds!.width, selector).toBeLessThanOrEqual(width + 3)
+    }
   }
 })
