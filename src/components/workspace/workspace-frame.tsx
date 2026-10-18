@@ -59,7 +59,7 @@ export function WorkspaceFrame({ session, children, authOnly = false, documentIn
           {navigation.map((item) => {
             const Icon = icons[item.icon as keyof typeof icons] ?? FileText
             const active = item.href === '/app' ? pathname === '/app' || pathname === '/app-shell' : pathname.startsWith(item.href)
-            return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} onClick={() => setOpen(false)}><Icon size={18} aria-hidden="true" />{item.label}</Link>
+            return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} onClick={() => setOpen(false)}><Icon size={18} aria-hidden="true" />{authOnly && item.href === '/app/users' && session.user.accountType === 'individual' ? 'Personal workspace' : item.label}</Link>
           })}
           {authOnly && usageAnalytics && access?.allows('usage:read') && <Link href="/app/usage" aria-current={pathname === '/app/usage' ? 'page' : undefined} onClick={() => setOpen(false)}><ChartNoAxesColumn size={18} aria-hidden="true"/>Usage & plan</Link>}
           {authOnly && <Link href="/app/access" aria-current={pathname === '/app/access' ? 'page' : undefined} onClick={() => setOpen(false)}><ShieldCheck size={18} aria-hidden="true"/>Your access</Link>}
@@ -68,7 +68,7 @@ export function WorkspaceFrame({ session, children, authOnly = false, documentIn
         <div className="vx-workspace-account"><span className="account-avatar">{session.user.displayName.slice(0, 1).toUpperCase()}</span><div><strong>{session.user.displayName}</strong><small>{authOnly ? 'Signed in' : session.user.role.replaceAll('_', ' ')}</small></div><button onClick={logout} disabled={pending} aria-label={pending ? 'Signing out' : 'Sign out'} title="Sign out"><LogOut size={18} /></button></div>
         {error && <p className="vx-logout-error" role="alert">{error}</p>}
       </aside>
-      <div id="workspace-content" className="vx-workspace-body" tabIndex={-1}><div className="vx-workspace-topbar"><span>Workspace <span aria-hidden="true">/</span> {pathname.includes('/documents') ? 'Documents' : pathname.includes('/security') ? 'Security' : pathname.includes('/usage') ? 'Usage & plan' : pathname.includes('/users') ? 'Team & access' : pathname.includes('/workflows') ? 'Workflow records' : pathname.includes('/audit') ? 'Audit Log' : pathname.includes('/access') ? 'Access' : 'Overview'}</span><span><ShieldCheck size={14} aria-hidden="true"/> Private workspace</span></div>{children}</div>
+      <div id="workspace-content" className="vx-workspace-body" tabIndex={-1}><div className="vx-workspace-topbar"><span>Workspace <span aria-hidden="true">/</span> {pathname.includes('/documents') ? 'Documents' : pathname.includes('/security') ? 'Security' : pathname.includes('/usage') ? 'Usage & plan' : pathname.includes('/users') ? (session.user.accountType === 'individual' ? 'Personal workspace' : 'Team & access') : pathname.includes('/workflows') ? 'Workflow records' : pathname.includes('/audit') ? 'Audit Log' : pathname.includes('/access') ? 'Access' : 'Overview'}</span><span><ShieldCheck size={14} aria-hidden="true"/> Private workspace</span></div>{children}</div>
     </div>
   )
 }

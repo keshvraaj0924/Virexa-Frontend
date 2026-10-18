@@ -16,7 +16,7 @@ test('real roster, confirmed role changes, pagination, version conflicts, audit 
   expect(await page.getByText('Own role protected').count()).toBe(1)
   const target = members[1]
   await page.getByRole('button', { name: `Review role for ${target.name}`, exact: true }).click()
-  await page.getByLabel('New role').selectOption('manager'); await expect(page.getByRole('button', { name: 'Confirm role change' })).toBeDisabled()
+  await page.getByLabel('New role').selectOption('manager'); await expect(page.getByLabel('New role')).toBeFocused(); await page.screenshot({ path: 'test-results/team-review.png' }); await expect(page.getByRole('button', { name: 'Confirm role change' })).toBeDisabled()
   await page.getByRole('button', { name: 'Close review' }).click()
   expect((await (await page.request.get(`/api/v1/organization/members/${target.id}`)).json()).data.role).toBe('viewer')
   await page.getByRole('button', { name: `Review role for ${target.name}`, exact: true }).click(); await page.getByLabel('New role').selectOption('manager'); await page.getByRole('checkbox').check()
@@ -37,7 +37,7 @@ test('real roster, confirmed role changes, pagination, version conflicts, audit 
   const auditor = await browser.newContext({ baseURL: origin }); expect((await auditor.request.post('/api/v1/auth/login', { headers: { Origin: origin }, data: { accountType: 'organization', email: members[0].email, password } })).status()).toBe(200)
   const auditPage = await auditor.newPage(); await auditPage.goto('/app/users'); await expect(auditPage.getByText('Read-only roster')).toBeVisible(); await expect(auditPage.getByRole('button', { name: /Review role for/ })).toHaveCount(0)
   expect((await auditor.request.patch(`/api/v1/organization/members/${target.id}/role`, { headers: { Origin: origin }, data: { role: 'viewer', expectedVersion: member.version } })).status()).toBe(403)
-  await page.setViewportSize({ width: 1440, height: 1000 }); await page.screenshot({ path: 'test-results/team-desktop.png', fullPage: true }); await page.setViewportSize({ width: 390, height: 844 }); expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true); await page.screenshot({ path: 'test-results/team-mobile.png', fullPage: true })
+  await page.setViewportSize({ width: 1440, height: 1000 }); await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: 'test-results/team-desktop.png' }); await page.setViewportSize({ width: 390, height: 844 }); expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true); await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: 'test-results/team-mobile.png' })
   await page.goto('/app/audit'); await page.getByLabel('Action', { exact: true }).selectOption('organization.member.role_updated'); await expect(page.locator('.audit-table tbody tr')).toHaveCount(2)
   await foreign.close(); await auditor.close()
 })

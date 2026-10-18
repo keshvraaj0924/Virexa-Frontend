@@ -8,6 +8,7 @@ import { getServerAuthenticatedContext } from '@/lib/auth/server'
 import UsersPage from './page'
 afterEach(() => { vi.unstubAllEnvs(); vi.clearAllMocks() })
 it('keeps the Node organization permission gate unchanged', async () => {
+  vi.stubEnv('VIREXA_AUTH_CANDIDATE', '0')
   vi.mocked(getServerAuthenticatedContext).mockResolvedValue({ user: { organizationName: 'Synthetic tenant' }, permissions: [] } as never)
   await expect(UsersPage()).rejects.toThrow('redirect')
   vi.mocked(getServerAuthenticatedContext).mockResolvedValue({ user: { organizationName: 'Synthetic tenant' }, permissions: ['organization:manage'] } as never)

@@ -22,3 +22,8 @@
 .team-roster .panel-heading{align-items:flex-start;gap:12px}
 }
 
+.team-roster .text-button,.team-review .text-button{border:1px solid #dbe5ef;background:#fff;color:#245f9c;border-radius:8px;padding:10px 14px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.team-roster .text-button:hover,.team-review .text-button:hover{background:#f1f6fd;border-color:#94b8df}
+.team-review .primary-button{background:#286fba;border:1px solid #286fba;border-radius:8px;color:white;font:inherit;font-size:14px;padding:12px 18px;cursor:pointer}
+.team-review :focus-visible,.team-roster button:focus-visible{outline:3px solid #418fde;outline-offset:3px}
+@media(max-width:650px){.team-roster .text-button{font-size:11px;padding:9px 7px;white-space:normal}.team-table td:first-child{max-width:120px}.team-table th:nth-child(2){min-width:65px}}
