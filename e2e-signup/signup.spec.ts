@@ -110,7 +110,9 @@ test('[interruption] reload/back discard codes and delivery failure does not ent
   await expect(page.getByLabel('Full name')).toBeVisible()
   await expect(page.getByLabel('Verification code')).toHaveCount(0)
   await page.getByRole('link', { name: 'Sign in', exact: true }).click()
+  await expect(page).toHaveURL(/\/login$/)
   await page.goBack()
+  await expect(page).toHaveURL(/\/register$/)
   await expect(page.getByLabel('Verification code')).toHaveCount(0)
   await page.getByLabel('Full name').fill('Delivery Failure')
   // The loopback-only sink rejects non-fixture domains. No external email is sent.
