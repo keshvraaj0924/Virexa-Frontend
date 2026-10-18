@@ -4,7 +4,7 @@ const origin = 'http://127.0.0.1:3000'
 const password = 'Synthetic-unique-passphrase-927!'
 const headers = { Origin: origin }
 
-test('individual verified signup, isolated workspace, truthful usage and account-kind login', async ({ page, browser }) => {
+test('[individual] individual verified signup, isolated workspace, truthful usage and account-kind login', async ({ page, browser }) => {
   const email = `individual-${Date.now()}@example.com`
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.setViewportSize({ width: 390, height: 844 })
@@ -72,7 +72,7 @@ test('individual verified signup, isolated workspace, truthful usage and account
   await expect(page.locator('.vx-workspace-tenant')).toContainText('Individual workspace')
 })
 
-test('organization UI verifies before password and keeps team workspace identity after reload', async ({ page }) => {
+test('[organization] organization UI verifies before password and keeps team workspace identity after reload', async ({ page }) => {
   const email = `organization-ui-${Date.now()}@example.com`
   await page.goto('/register')
   await page.getByRole('radio', { name: /Organization/ }).check()
@@ -100,7 +100,7 @@ test('organization UI verifies before password and keeps team workspace identity
   await expect(page.getByRole('heading', { name: 'People & operations' })).toBeVisible()
 })
 
-test('reload/back discard codes and delivery failure does not enter verification', async ({ page }) => {
+test('[interruption] reload/back discard codes and delivery failure does not enter verification', async ({ page }) => {
   await page.goto('/register')
   await page.getByLabel('Full name').fill('Interrupted Owner')
   await page.getByLabel('Email', { exact: true }).fill(`interrupted-${Date.now()}@example.com`)
@@ -122,7 +122,7 @@ test('reload/back discard codes and delivery failure does not enter verification
   expect((await page.request.post('/api/v1/auth/register', { headers, data: { displayName: 'Bypass Attempt', organizationName: 'Bypass', email: 'bypass@example.com', password } })).status()).toBe(410)
 })
 
-test('resend rotates the real code after cooldown and expiry offers a safe restart', async ({ page }) => {
+test('[resend] resend rotates the real code after cooldown and expiry offers a safe restart', async ({ page }) => {
   const email = `resend-${Date.now()}@example.com`
   await page.goto('/register')
   await page.getByLabel('Full name').fill('Resend Owner')
@@ -151,7 +151,7 @@ test('resend rotates the real code after cooldown and expiry offers a safe resta
   await expect(page.getByLabel(/^Password/)).toHaveCount(0)
 })
 
-test('lost completion response reconciles the session or offers a non-replaying sign-in recovery', async ({ page }) => {
+test('[recovery] lost completion response reconciles the session or offers a non-replaying sign-in recovery', async ({ page }) => {
   const email = `lost-response-${Date.now()}@example.com`
   await page.goto('/register')
   await page.getByLabel('Full name').fill('Response Recovery')

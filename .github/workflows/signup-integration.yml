@@ -9,6 +9,10 @@ jobs:
   verified-signup:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [individual, organization, interruption, resend, recovery]
     services:
       postgres:
         image: postgres:16
@@ -77,13 +81,13 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - name: Real browser, loopback SMTP, FastAPI and PostgreSQL verification
-        run: npx playwright test --config playwright.signup.config.ts
+        run: npx playwright test --config playwright.signup.config.ts --grep "\[${{ matrix.scenario }}\]"
 
       - name: Save visual review screenshots (no traces or cookies)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: usage-entitlement-review
+          name: verified-signup-${{ matrix.scenario }}
           path: test-results/*.png
           retention-days: 7
 

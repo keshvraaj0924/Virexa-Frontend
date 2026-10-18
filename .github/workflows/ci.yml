@@ -14,7 +14,6 @@ jobs:
     timeout-minutes: 10
     env:
       VIREXA_AUTH_CANDIDATE: '1'
-      NEXT_PUBLIC_API_URL: /api/v1
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,6 +33,8 @@ jobs:
       - name: Test
         run: npm test
       - name: Build
+        env:
+          NEXT_PUBLIC_API_URL: /api/v1
         run: npm run build
 
       - name: Install browser

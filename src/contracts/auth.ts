@@ -43,9 +43,8 @@ export type ApiErrorCode =
   | 'IDEMPOTENCY_KEY_REUSED'
   | 'RATE_LIMITED'
   | 'EMAIL_DELIVERY_UNAVAILABLE'
-  | 'INVALID_VERIFICATION_CODE'
-  | 'VERIFICATION_EXPIRED'
-  | 'INVALID_SETUP_TOKEN'
+  | 'SIGNUP_PROOF_INVALID'
+  | 'SIGNUP_COOLDOWN'
 
 export interface UserSummary {
   accountType: AccountType

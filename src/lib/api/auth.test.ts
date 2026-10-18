@@ -30,6 +30,6 @@ it('sends verification steps to exact bounded routes without putting secrets in 
   await authApi.startSignup({ accountType: 'individual', displayName: 'Synthetic', email: 'synthetic@example.com' })
   await authApi.verifySignup({ challengeId: 'test-challenge', code: 'test-code' })
   await authApi.completeSignup({ challengeId: 'test-challenge', setupToken: 'test-proof', password: 'test-password-long' })
-  expect(fetch.mock.calls.map(call => new URL(call[0]).pathname)).toEqual(['/api/v1/auth/signup/start', '/api/v1/auth/signup/verify', '/api/v1/auth/signup/complete'])
+  expect(fetch.mock.calls.map(call => new URL(call[0], 'http://localhost').pathname)).toEqual(['/api/v1/auth/signup/start', '/api/v1/auth/signup/verify', '/api/v1/auth/signup/complete'])
   for (const [, init] of fetch.mock.calls) expect(init.credentials).toBe('include')
 })
