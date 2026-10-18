@@ -20,3 +20,22 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 button, input { font: inherit; }
+
+/* Read-only tenant audit, with explicit bounded coverage. */
+.vx-audit { min-width: 0; }
+.vx-audit-filters { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1rem 1.5rem; }
+.vx-audit-filters label { display: grid; gap: .4rem; font-size: .85rem; color: #334155; }
+.vx-audit-filters select { max-width: 100%; padding: .65rem; border: 1px solid #cbd5e1; border-radius: .5rem; background: #fff; color: #0f172a; }
+.vx-audit-coverage { margin: .5rem 1.5rem; padding: 1rem; background: #f1f5f9; border-radius: .6rem; color: #334155; font-size: .85rem; line-height: 1.6; }
+.vx-audit-count { padding: .5rem 1.5rem; color: #475569; }
+.vx-audit-pagination { display: flex; justify-content: space-between; gap: 1rem; padding: 1rem 1.5rem; }
+.vx-audit button:disabled { opacity: .5; cursor: default; }
+.vx-audit .audit-table { min-width: 850px; }
+@media (max-width: 600px) { .vx-audit .audit-heading { flex-direction: column; align-items: flex-start; gap: 1rem; } .vx-audit-filters label { width: 100%; } }
+.vx-audit .audit-table td { font-size: 13px; line-height: 1.5; }
+.vx-audit .audit-table th { font-size: 11px; color: #475569; }
+.vx-audit .audit-heading p, .vx-audit .audit-empty p { font-size: 14px; line-height: 1.6; }
+.vx-audit .audit-subvalue { font-size: 11px; color: #475569; }
+.vx-audit .text-button { padding: .65rem .9rem; border: 1px solid #cbd5e1; border-radius: .5rem; color: #24466c; background: #f8fafc; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.vx-audit .text-button:hover:not(:disabled) { background: #eef5ff; border-color: #93bce9; }
+.vx-audit .text-button:focus-visible, .vx-audit .audit-table-wrap:focus-visible { outline: 2px solid #418fde; outline-offset: 3px; }

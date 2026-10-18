@@ -37,6 +37,7 @@ jobs:
       VIREXA_AUTH_CANDIDATE: '1'
       VIREXA_DOCUMENT_INTAKE: '1'
       VIREXA_USAGE_ANALYTICS: '1'
+      VIREXA_AUDIT_EVENTS: '1'
       PUBLIC_API_ORIGIN: http://127.0.0.1:3000
       DOCUMENT_STORAGE_ROOT: /tmp/virexa-private-quarantine
       AUTH_API_ORIGIN: http://127.0.0.1:4000
@@ -51,11 +52,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: keshvraaj0924/Virexa-backend
-          ref: 52b46c9c4e20d3a9b8dc42ad03293d5a73220ac4
+          ref: becd272a005fbc6ae90596b96af0cea85d785537
           path: .auth-backend
           persist-credentials: false
       - name: Verify immutable backend pin
-        run: test "$(git -C .auth-backend rev-parse HEAD)" = '52b46c9c4e20d3a9b8dc42ad03293d5a73220ac4'
+        run: test "$(git -C .auth-backend rev-parse HEAD)" = 'becd272a005fbc6ae90596b96af0cea85d785537'
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

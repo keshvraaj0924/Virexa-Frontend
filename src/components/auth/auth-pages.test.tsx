@@ -38,7 +38,7 @@ describe('premium authentication', () => {
     const view = render(<LoginPage />); enterLogin()
     fireEvent.submit(view.container.querySelector('form')!)
     await waitFor(() => expect(screen.getByRole('alert').textContent).toBe('Unable to sign in.'))
-    expect(document.activeElement).toBe(screen.getByRole('alert'))
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('alert')))
     expect((screen.getByLabelText('Email') as HTMLInputElement).value).toBe('alex@example.com')
     expect(router.replace).not.toHaveBeenCalled()
     fireEvent.submit(view.container.querySelector('form')!)
@@ -115,7 +115,7 @@ describe('verified account creation', () => {
     render(<RegisterPage />); enterDetails(); submit()
     await screen.findByRole('alert')
     expect(screen.queryByLabelText('Verification code')).toBeNull()
-    expect(document.activeElement).toBe(screen.getByRole('alert'))
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('alert')))
     submit(); await screen.findByLabelText('Verification code')
   })
   it('retains verification step after an invalid code and clears secrets when editing details', async () => {

@@ -4,6 +4,7 @@ import { CAPABILITIES, type Capability } from '@/contracts/capabilities'
 import { AccessDenied, useAccess } from './access-provider'
 
 const labels: Record<Capability, { title: string; description: string }> = {
+  'audit:read': { title: 'Read audit events', description: 'View recorded activity in your current workspace.' },
   'usage:read': { title: 'Review your usage', description: 'See your own recorded AI and operation usage.' },
   'usage:organization:read': { title: 'Review organization usage', description: 'See usage across your current organization only.' },
   'document:read': { title: 'View documents', description: 'Read document records within your authorized scope.' },

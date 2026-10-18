@@ -41,12 +41,14 @@ test('current backend role controls UI, rejects stale writes, and keeps auditor 
   await expect(page.getByText('Current session', { exact: true })).toBeVisible()
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.getByRole('link', { name: 'Your access', exact: true }).click()
-  await expect(page.getByText('Allowed', { exact: true })).toHaveCount(4)
+  await expect(page.locator('article').filter({ has: page.getByRole('heading', { name: 'Read audit events', exact: true }) })).toContainText('Allowed')
+  await expect(page.locator('article').filter({ has: page.getByRole('heading', { name: 'View documents', exact: true }) })).toContainText('Restricted')
 
   // A later role change is reflected without a fresh login.
   setRole(email, 'operator')
   await page.getByRole('button', { name: 'Refresh permissions', exact: true }).click()
-  await expect(page.getByText('Allowed', { exact: true })).toHaveCount(6)
+  await expect(page.locator('article').filter({ has: page.getByRole('heading', { name: 'Upload document files', exact: true }) })).toContainText('Allowed')
+  await expect(page.locator('article').filter({ has: page.getByRole('heading', { name: 'Read audit events', exact: true }) })).toContainText('Restricted')
   await page.getByRole('link', { name: 'Documents', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Upload to quarantine' })).toBeVisible()
 })
@@ -61,5 +63,7 @@ test('permissions outage fails closed and recovers without offering fake adminis
   await expect(page.getByRole('link', { name: 'Users & Access', exact: true })).toHaveCount(0)
   await page.unroute('**/api/v1/me/permissions')
   await page.getByRole('button', { name: 'Check access again' }).click()
-  await expect(page.getByText('Allowed', { exact: true })).toHaveCount(8)
+  for (const name of ['Read audit events', 'View documents', 'Upload document files', 'Review your sessions', 'Revoke your sessions', 'Read organization details', 'Review your usage', 'Review organization usage', 'Create intake records']) {
+    await expect(page.locator('article').filter({ has: page.getByRole('heading', { name, exact: true }) })).toContainText('Allowed')
+  }
 })
